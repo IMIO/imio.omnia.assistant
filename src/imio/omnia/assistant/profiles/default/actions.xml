@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<object name="portal_actions" meta_type="Plone Actions Tool"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+  <object name="omnia_controlpanel_tabs" meta_type="CMF Action Category">
+    <object name="imio.omnia.assistant" meta_type="CMF Action">
+      <property name="title" i18n:translate="">Assistant</property>
+      <property name="url_expr">string:${portal_url}/@@omnia-assistant-settings</property>
+      <property name="icon_expr">string:chat-left-text</property>
+    </object>
+  </object>
+
+</object>

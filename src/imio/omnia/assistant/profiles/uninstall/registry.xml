@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<registry>
+
+  <records
+      interface="imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings"
+      remove="True">
+  </records>
+
+  <records
+      interface="Products.CMFPlone.interfaces.IBundleRegistry"
+      prefix="plone.bundles/omnia-assistant-preact"
+      remove="True">
+  </records>
+
+  <records
+      interface="Products.CMFPlone.interfaces.IBundleRegistry"
+      prefix="plone.bundles/omnia-assistant"
+      remove="True">
+  </records>
+
+</registry>

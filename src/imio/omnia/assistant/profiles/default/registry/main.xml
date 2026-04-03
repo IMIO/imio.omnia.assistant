@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<registry
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    i18n:domain="imio.omnia.assistant">
+
+  <records interface="imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings"/>
+
+  <!-- Preact UMD — loaded first, provides window.preact -->
+  <records prefix="plone.bundles/omnia-assistant-preact"
+           interface="Products.CMFPlone.interfaces.IBundleRegistry">
+    <value key="jscompilation">++plone++imio.omnia.assistant/preact.umd.js</value>
+    <value key="enabled">True</value>
+    <value key="compile">False</value>
+  </records>
+
+  <!-- Assistant UI widget — depends on preact being loaded -->
+  <records prefix="plone.bundles/omnia-assistant"
+           interface="Products.CMFPlone.interfaces.IBundleRegistry">
+    <value key="jscompilation">++plone++imio.omnia.assistant/omnia-assistant-ui.js</value>
+    <value key="csscompilation">++plone++imio.omnia.assistant/omnia-assistant-ui.css</value>
+    <value key="depends">omnia-assistant-preact</value>
+    <value key="enabled">True</value>
+    <value key="compile">False</value>
+  </records>
+
+</registry>

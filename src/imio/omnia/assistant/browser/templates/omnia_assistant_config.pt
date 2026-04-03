@@ -1,0 +1,11 @@
+<tal:block tal:define="config view/config_json"
+           tal:condition="config">
+<script tal:attributes="data-omnia-assistant-config config"
+        type="text/javascript">
+(function() {
+  window.omnia_assistant_settings = JSON.parse(
+    document.currentScript.getAttribute('data-omnia-assistant-config')
+  );
+})();
+</script>
+</tal:block>
