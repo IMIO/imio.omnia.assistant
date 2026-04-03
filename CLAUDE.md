@@ -15,8 +15,7 @@ src/imio/omnia/assistant/
 │   ├── resources/              # Vite + Preact frontend library source
 │   ├── static/                 # Built JS/CSS bundles served by Plone
 │   │   ├── omnia-assistant-ui.js
-│   │   ├── omnia-assistant-ui.css
-│   │   └── preact.umd.js
+│   │   └── omnia-assistant-ui.css
 │   └── configure.zcml          # Static resources, viewlet, vocabulary, control panel
 ├── profiles/
 │   ├── default/
@@ -54,15 +53,13 @@ cd src/imio/omnia/assistant/browser/resources
 npm ci && npm run build
 cp dist/omnia-assistant-ui.js ../static/
 cp dist/omnia-assistant-ui.css ../static/
-cp dist/preact.umd.js ../static/
 ```
 
 ### How the widget is loaded
 
-1. `preact.umd.js` is registered as the `plone.bundles/omnia-assistant-preact` bundle.
-2. `omnia-assistant-ui.js` and `omnia-assistant-ui.css` are registered as the `plone.bundles/omnia-assistant` bundle, depending on the Preact bundle.
-3. The `OmniaAssistantConfigViewlet` injects `window.omnia_assistant_settings` into the page header.
-4. The frontend bundle auto-mounts the assistant using that config.
+1. `omnia-assistant-ui.js` (self-contained, Preact bundled inside) and `omnia-assistant-ui.css` are registered as the `plone.bundles/omnia-assistant` bundle.
+2. The `OmniaAssistantConfigViewlet` injects `window.omnia_assistant_settings` into the page header.
+3. The frontend bundle auto-mounts the assistant using that config.
 
 ### Config bridge (viewlet)
 
