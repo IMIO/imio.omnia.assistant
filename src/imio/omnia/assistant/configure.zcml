@@ -7,6 +7,8 @@
 
   <i18n:registerTranslations directory="locales" />
 
+  <include package="imio.omnia.core" />
+
   <include file="permissions.zcml" />
 
   <include package=".browser" />
