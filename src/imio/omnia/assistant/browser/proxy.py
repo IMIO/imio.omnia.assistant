@@ -92,7 +92,79 @@ class OmniaAssistantOpenAIProxyView(OmniaOpenAIProxyView):
             return f"{base}{path}"
         return super()._build_upstream_url(openai_url, path)
 
+    def _is_mcp_request(self):
+        path = "/" + "/".join(self._path_segments)
+        return bool(_MCP_PATH_RE.match(path))
+
+    def __call__(self):
+        if self._is_mcp_request():
+            return self._handle_mcp_request()
+        return super().__call__()
+
+    def _handle_mcp_request(self):
+        """Handle MCP requests with explicit headers.
+
+        LiteLLM MCP endpoints require ``Accept: application/json,
+        text/event-stream`` and live at the gateway root (no ``/v1``).
+        We bypass the parent __call__ header logic so that Plone
+        middleware cannot strip or alter the Accept header.
+        """
+        from urllib.parse import urlparse
+
+        from plone.protect.interfaces import IDisableCSRFProtection
+        from zope.interface import alsoProvides
+        from imio.omnia.core.browser.proxy import IOmniaOpenAIService
+        from imio.omnia.core.settings import get_openai_api_url
+        from imio.omnia.core.tokens import validate_token
+
+        alsoProvides(self.request, IDisableCSRFProtection)
+
+        # --- Origin check (same as parent) ---
+        origin = self.request.getHeader("Origin")
+        if origin:
+            portal_url = api.portal.get().absolute_url()
+            if urlparse(origin).netloc != urlparse(portal_url).netloc:
+                return self._json_error(403, "Origin not allowed")
+
+        # --- HMAC token check ---
+        auth_header = (
+            getattr(self.request, "_auth", "") or
+            self.request.getHeader("Authorization", "")
+        )
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return self._json_error(401, "Missing authorization")
+
+        token = auth_header[len("Bearer "):]
+        portal_url = api.portal.get().absolute_url()
+        if not validate_token(token, portal_url):
+            return self._json_error(403, "Invalid or expired token")
+
+        if not self._is_proxy_enabled():
+            return self._json_error(404, "Not found")
+
+        openai_url = get_openai_api_url()
+        if not openai_url:
+            return self._json_error(503, "OpenAI API URL not configured")
+
+        body, error = self._read_json_body()
+        if error is not None:
+            return error
+
+        path = "/" + "/".join(self._path_segments)
+        url = self._build_upstream_url(openai_url, path)
+
+        service = getMultiAdapter(
+            (self.context, self.request), IOmniaOpenAIService
+        )
+        headers = service._headers()
+        headers["Content-Type"] = "application/json"
+        headers["Accept"] = "application/json, text/event-stream"
+
+        return self._json_response(url, headers, body)
+
     def _prepare_request_body(self, body):
+        if self._is_mcp_request():
+            return body, None
         limit_error = self._validate_message_limit(body)
         if limit_error is not None:
             return body, limit_error
