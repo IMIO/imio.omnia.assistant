@@ -37,7 +37,7 @@
     name="omnia-assistant-api"
     for="*"
     class=".proxy.OmniaAssistantOpenAIProxyView"
-    permission="imio.omnia.core.AccessOmniaOpenAIProxy"
+    permission="zope2.View"
     layer="imio.omnia.assistant.interfaces.IImioOmniaAssistantLayer"
   />
 

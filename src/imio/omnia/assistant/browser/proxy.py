@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import re
 
 from plone import api
 from zope.component import getMultiAdapter
 
 from imio.omnia.assistant.interfaces import IOmniaAssistantAdapter
 from imio.omnia.core.browser.proxy import OmniaOpenAIProxyView
+
+_MCP_PATH_RE = re.compile(r"^/[^/]+/mcp(/.*)?$")
 
 
 _SETTINGS_PREFIX = (
@@ -81,6 +84,13 @@ class OmniaAssistantOpenAIProxyView(OmniaOpenAIProxyView):
             *messages,
         ]
         return updated_body
+
+    def _build_upstream_url(self, openai_url, path):
+        """Route MCP paths to the LiteLLM root instead of under /v1."""
+        if _MCP_PATH_RE.match(path):
+            base = re.sub(r"/v1/?$", "", openai_url.rstrip("/"))
+            return f"{base}{path}"
+        return super()._build_upstream_url(openai_url, path)
 
     def _prepare_request_body(self, body):
         limit_error = self._validate_message_limit(body)
