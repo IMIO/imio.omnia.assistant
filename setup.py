@@ -46,7 +46,6 @@ setup(
         'plone.api>=1.8.4',
         'plone.app.dexterity',
         'imio.omnia.core',
-        'httpx',
     ],
     extras_require={
         'test': [
