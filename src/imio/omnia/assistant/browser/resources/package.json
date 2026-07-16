@@ -1,0 +1,8 @@
+{
+  "name": "imio-omnia-assistant-bundle",
+  "private": true,
+  "description": "Pins the published @imiobe/omnia-assistant-ui distribution; `make build-js` copies its dist files into ../static/.",
+  "dependencies": {
+    "@imiobe/omnia-assistant-ui": "0.3.2"
+  }
+}

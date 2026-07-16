@@ -1,0 +1,15 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+  i18n_domain="imio.omnia.assistant">
+
+  <genericsetup:upgradeStep
+    title="Drop the obsolete assistant CSS bundle resource"
+    description="Clears the stale csscompilation registry value: the UI bundle now injects its own styles at runtime, and the CSS file it used to point to was removed."
+    source="1001"
+    destination="1002"
+    handler=".upgrades.upgrade_1001_to_1002"
+    profile="imio.omnia.assistant:default"
+  />
+
+</configure>

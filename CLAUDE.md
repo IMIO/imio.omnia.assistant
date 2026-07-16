@@ -12,10 +12,9 @@ src/imio/omnia/assistant/
 │   ├── templates/
 │   │   └── omnia_assistant_config.pt
 │   │                           # <script> setting window.omnia_assistant_settings
-│   ├── resources/              # Vite + Preact frontend library source
-│   ├── static/                 # Built JS/CSS bundles served by Plone
-│   │   ├── omnia-assistant-ui.js
-│   │   └── omnia-assistant-ui.css
+│   ├── resources/              # package.json pinning the published npm UI bundle
+│   ├── static/                 # Built JS bundle served by Plone
+│   │   └── omnia-assistant-ui.js
 │   └── configure.zcml          # Static resources, viewlet, vocabulary, control panel
 ├── profiles/
 │   ├── default/
@@ -35,29 +34,37 @@ src/imio/omnia/assistant/
 └── permissions.zcml            # Permission definitions
 ```
 
-## Frontend (JS/CSS)
+## Frontend (JS)
 
-The chat widget source lives in `browser/resources/` and builds into the committed assets under `browser/static/`.
+The chat widget is developed in its own repository and published to npm as
+[`@imiobe/omnia-assistant-ui`](https://gitlab.imio.be/ia/omnia-assistant-ui).
+`browser/resources/package.json` pins the version consumed here; `make
+build-js` copies its built `dist/` file into the committed asset under
+`browser/static/`.
 
-### Rebuilding after JS changes
+The published package ships a single self-contained UMD bundle (Preact and
+CSS both bundled inside, styles injected at runtime) — there is no separate
+CSS file to copy.
+
+### Bumping the UI version
+
+1. Edit `browser/resources/package.json` — bump the
+   `@imiobe/omnia-assistant-ui` version.
+2. `cd src/imio/omnia/assistant/browser/resources && npm install` (refreshes
+   `package-lock.json`).
+3. `make build-js` from the package root (copies the new
+   `omnia-assistant-ui.umd.cjs` to `browser/static/omnia-assistant-ui.js`).
+4. Commit `package.json`, `package-lock.json`, and the updated
+   `browser/static/omnia-assistant-ui.js` together.
 
 ```bash
-make build-js                   # npm ci + vite build + copy to static/
-make clean-js                   # Remove built artifacts from static/
-```
-
-Or manually:
-
-```bash
-cd src/imio/omnia/assistant/browser/resources
-npm ci && npm run build
-cp dist/omnia-assistant-ui.js ../static/
-cp dist/omnia-assistant-ui.css ../static/
+make build-js                   # npm ci + copy dist to static/
+make clean-js                   # Remove built artifact from static/
 ```
 
 ### How the widget is loaded
 
-1. `omnia-assistant-ui.js` (self-contained, Preact bundled inside) and `omnia-assistant-ui.css` are registered as the `plone.bundles/omnia-assistant` bundle.
+1. `omnia-assistant-ui.js` (self-contained, Preact and styles bundled inside) is registered as the `plone.bundles/omnia-assistant` bundle.
 2. The `OmniaAssistantConfigViewlet` injects `window.omnia_assistant_settings` into the page header.
 3. The frontend bundle auto-mounts the assistant using that config.
 
@@ -132,7 +139,7 @@ Stored under `imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings`
 - `initial_height` — Initial panel height in pixels
 - `disclaimer` — Optional disclaimer shown at the bottom of the panel
 
-The install profile registers the assistant JS/CSS bundles in Plone's bundle registry.
+The install profile registers the assistant JS bundle in Plone's bundle registry.
 
 ## Architecture notes
 

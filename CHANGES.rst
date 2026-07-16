@@ -9,6 +9,10 @@ Changelog
   drop unused httpx dependency.
   [duchenean]
 
+- OIA-241: Bundle the UI from the published npm package
+  @imiobe/omnia-assistant-ui (0.3.2) instead of a git submodule.
+  [duchenean]
+
 
 1.0a4 (2026-04-03)
 ------------------
