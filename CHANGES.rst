@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-1.0a5 (unreleased)
-------------------
+1.0 (unreleased)
+----------------
 
 - OIA-241: Follow imio.omnia.core's httpx -> httpx2 migration in test mocks;
   drop unused httpx dependency.
