@@ -2,10 +2,16 @@ Changelog
 =========
 
 
-1.0a5 (unreleased)
-------------------
+1.0 (unreleased)
+----------------
 
-- Nothing changed yet.
+- OIA-241: Follow imio.omnia.core's httpx -> httpx2 migration in test mocks;
+  drop unused httpx dependency.
+  [duchenean]
+
+- OIA-241: Bundle the UI from the published npm package
+  @imiobe/omnia-assistant-ui (0.3.2) instead of a git submodule.
+  [duchenean]
 
 
 1.0a4 (2026-04-03)

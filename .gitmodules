@@ -1,3 +1,0 @@
-[submodule "src/imio/omnia/assistant/browser/resources"]
-	path = src/imio/omnia/assistant/browser/resources
-	url = git@gitlab.imio.be:ia/omnia-assistant-ui.git

@@ -5,11 +5,12 @@
 
   <records interface="imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings"/>
 
-  <!-- Assistant UI widget (self-contained, Preact bundled inside) -->
+  <!-- Assistant UI widget (self-contained, Preact + CSS bundled inside;
+       the npm distribution injects its styles at runtime, so no separate
+       CSS resource is registered here). -->
   <records prefix="plone.bundles/omnia-assistant"
            interface="Products.CMFPlone.interfaces.IBundleRegistry">
     <value key="jscompilation">++plone++imio.omnia.assistant/omnia-assistant-ui.js</value>
-    <value key="csscompilation">++plone++imio.omnia.assistant/omnia-assistant-ui.css</value>
     <value key="enabled">True</value>
     <value key="compile">False</value>
   </records>

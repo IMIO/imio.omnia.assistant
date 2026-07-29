@@ -4,7 +4,7 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
@@ -45,7 +45,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
       5. Request body: must be valid JSON → 400
 
     All Plone machinery (registry, tokens, component lookup) runs for real.
-    Only httpx and getMultiAdapter are mocked for upstream tests.
+    Only httpx2 and getMultiAdapter are mocked for upstream tests.
     """
 
     layer = IMIO_OMNIA_ASSISTANT_INTEGRATION_TESTING
@@ -77,9 +77,15 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         return view
 
     def _mock_service(self, mock_adapter):
-        """Configure a mock IOmniaOpenAIService that returns empty headers."""
+        """Configure a mock IOmniaOpenAIService that returns empty headers.
+
+        ``_use_oauth`` must be explicitly forced to False: these tests mock
+        the plain httpx2 request/Client path, not imio.omnia.core's OAuth2
+        client, and an unconfigured MagicMock() call is truthy by default.
+        """
         svc = MagicMock()
         svc._headers.return_value = {}
+        svc._use_oauth.return_value = False
         mock_adapter.return_value = svc
 
     def test_view_reachable_with_browser_layer(self):
@@ -223,7 +229,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         ), patch(
             "imio.omnia.core.browser.proxy.getMultiAdapter"
         ) as mock_adapter, patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
+            "imio.omnia.core.browser.proxy.httpx2.request",
             return_value=MagicMock(status_code=200, text="{}"),
         ):
             self._mock_service(mock_adapter)
@@ -254,7 +260,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         ), patch(
             "imio.omnia.core.browser.proxy.getMultiAdapter"
         ) as mock_adapter, patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
+            "imio.omnia.core.browser.proxy.httpx2.request",
             return_value=MagicMock(status_code=200, text="{}"),
         ):
             self._mock_service(mock_adapter)
@@ -283,7 +289,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         with patch(
             "imio.omnia.core.browser.proxy.get_openai_api_url",
             return_value=_UPSTREAM_URL,
-        ), patch("imio.omnia.core.browser.proxy.httpx.request") as mock_request:
+        ), patch("imio.omnia.core.browser.proxy.httpx2.request") as mock_request:
             result = json.loads(self._make_view(body=payload)())
 
         self.assertEqual(self.request.response.getStatus(), 400)
@@ -319,7 +325,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         ), patch(
             "imio.omnia.core.browser.proxy.getMultiAdapter"
         ) as mock_adapter, patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
+            "imio.omnia.core.browser.proxy.httpx2.request",
             return_value=MagicMock(status_code=200, text="{}"),
         ) as mock_request:
             self._mock_service(mock_adapter)
@@ -356,7 +362,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         ), patch(
             "imio.omnia.core.browser.proxy.getMultiAdapter"
         ) as mock_adapter, patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
+            "imio.omnia.core.browser.proxy.httpx2.request",
             return_value=MagicMock(status_code=200, text="{}"),
         ) as mock_request:
             self._mock_service(mock_adapter)
@@ -394,7 +400,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         ), patch(
             "imio.omnia.core.browser.proxy.getMultiAdapter"
         ) as mock_service_adapter, patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
+            "imio.omnia.core.browser.proxy.httpx2.request",
             return_value=MagicMock(status_code=200, text="{}"),
         ) as mock_request:
             self._mock_service(mock_service_adapter)
@@ -436,7 +442,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         mock_resp = MagicMock(status_code=200, text=upstream_text)
 
         payload = json.dumps({"stream": False, "messages": []}).encode()
-        with patch("imio.omnia.core.browser.proxy.httpx.request", return_value=mock_resp):
+        with patch("imio.omnia.core.browser.proxy.httpx2.request", return_value=mock_resp):
             result = self._make_view(body=payload)()
 
         self.assertEqual(self.request.response.getStatus(), 200)
@@ -450,7 +456,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         mock_resp = MagicMock(status_code=200, text="{}")
 
         payload = json.dumps({"stream": False}).encode()
-        with patch("imio.omnia.core.browser.proxy.httpx.request", return_value=mock_resp) as mock_req:
+        with patch("imio.omnia.core.browser.proxy.httpx2.request", return_value=mock_resp) as mock_req:
             self._make_view(
                 body=payload, path_segments=["v1", "chat", "completions"]
             )()
@@ -466,7 +472,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         mock_resp = MagicMock(status_code=200, text="{}")
         payload_dict = {"stream": False, "messages": [{"role": "user", "content": "hi"}]}
 
-        with patch("imio.omnia.core.browser.proxy.httpx.request", return_value=mock_resp) as mock_req:
+        with patch("imio.omnia.core.browser.proxy.httpx2.request", return_value=mock_resp) as mock_req:
             self._make_view(body=json.dumps(payload_dict).encode())()
 
         self.assertEqual(mock_req.call_args[1].get("json"), payload_dict)
@@ -480,8 +486,8 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
 
         payload = json.dumps({"stream": False}).encode()
         with patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
-            side_effect=httpx.HTTPStatusError(
+            "imio.omnia.core.browser.proxy.httpx2.request",
+            side_effect=httpx2.HTTPStatusError(
                 "Too Many Requests", request=MagicMock(), response=bad_response
             ),
         ):
@@ -498,7 +504,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
 
         payload = json.dumps({"stream": False}).encode()
         with patch(
-            "imio.omnia.core.browser.proxy.httpx.request",
+            "imio.omnia.core.browser.proxy.httpx2.request",
             side_effect=ConnectionError("unreachable"),
         ):
             result = json.loads(self._make_view(body=payload)())
@@ -519,7 +525,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         mock_client.send.return_value = mock_upstream
 
         payload = json.dumps({"stream": True, "messages": []}).encode()
-        with patch("imio.omnia.core.browser.proxy.httpx.Client", return_value=mock_client):
+        with patch("imio.omnia.core.browser.proxy.httpx2.Client", return_value=mock_client):
             result = self._make_view(body=payload)()
 
         self.assertIsInstance(result, SSEStreamIterator)
@@ -536,7 +542,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         mock_client.send.return_value = mock_upstream
 
         payload = json.dumps({"stream": True}).encode()
-        with patch("imio.omnia.core.browser.proxy.httpx.Client", return_value=mock_client):
+        with patch("imio.omnia.core.browser.proxy.httpx2.Client", return_value=mock_client):
             self._make_view(body=payload)()
 
         self.assertTrue(
@@ -556,12 +562,12 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         bad_response = MagicMock(status_code=503)
         bad_response.read.return_value = b"Service Unavailable"
         mock_client = MagicMock()
-        mock_client.send.side_effect = httpx.HTTPStatusError(
+        mock_client.send.side_effect = httpx2.HTTPStatusError(
             "Service Unavailable", request=MagicMock(), response=bad_response
         )
 
         payload = json.dumps({"stream": True}).encode()
-        with patch("imio.omnia.core.browser.proxy.httpx.Client", return_value=mock_client):
+        with patch("imio.omnia.core.browser.proxy.httpx2.Client", return_value=mock_client):
             result = json.loads(self._make_view(body=payload)())
 
         self.assertEqual(self.request.response.getStatus(), 503)
@@ -576,7 +582,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         mock_client.send.side_effect = ConnectionError("unreachable")
 
         payload = json.dumps({"stream": True}).encode()
-        with patch("imio.omnia.core.browser.proxy.httpx.Client", return_value=mock_client):
+        with patch("imio.omnia.core.browser.proxy.httpx2.Client", return_value=mock_client):
             result = json.loads(self._make_view(body=payload)())
 
         self.assertEqual(self.request.response.getStatus(), 502)
