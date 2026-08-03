@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0 (unreleased)
+1.0 (2026-08-03)
 ----------------
 
 - OIA-241: Follow imio.omnia.core's httpx -> httpx2 migration in test mocks;
