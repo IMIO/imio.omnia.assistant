@@ -13,6 +13,10 @@ Changelog
   migrated by upgrade step 1003.
   [chris-adam]
 
+- Require imio.omnia.core 1.3: its proxy checks the CSRF token the widget
+  sends.
+  [duchenean]
+
 
 1.0 (2026-08-03)
 ----------------
