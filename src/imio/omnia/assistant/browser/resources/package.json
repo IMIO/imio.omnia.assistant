@@ -3,6 +3,6 @@
   "private": true,
   "description": "Pins the published @imiobe/omnia-assistant-ui distribution; `make build-js` copies its dist files into ../static/.",
   "dependencies": {
-    "@imiobe/omnia-assistant-ui": "2.8.0"
+    "@imiobe/omnia-assistant-ui": "2.9.0"
   }
 }
