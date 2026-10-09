@@ -135,8 +135,9 @@ from the portal's are rejected.
 
 Every request must also carry plone.protect's CSRF token in an
 ``X-CSRF-TOKEN`` header, otherwise the proxy answers ``403``. The viewlet
-exposes it as ``csrf_token`` in ``window.omnia_assistant_settings``, for
-anonymous visitors too. The widget sends it on the chat and MCP requests.
+puts it in ``request_headers`` of ``window.omnia_assistant_settings``, for
+anonymous visitors too, and the widget (2.9.0 or later) adds those headers to
+its chat and MCP requests.
 
 Projects that need anonymous access can override that permission mapping in
 their own GenericSetup ``rolemap.xml``.

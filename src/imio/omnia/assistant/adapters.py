@@ -88,6 +88,9 @@ class OmniaAssistantAdapter:
         config["api_service_url"] = (
             f"{self.context.absolute_url()}/@@omnia-assistant-api"
         )
-        # Sent back by the widget as an X-CSRF-TOKEN header.
-        config["csrf_token"] = createToken()
+        # The widget (>= 2.9) adds these headers to its chat and MCP requests.
+        config["request_headers"] = {
+            **config.get("request_headers", {}),
+            "X-CSRF-TOKEN": createToken(),
+        }
         return config

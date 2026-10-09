@@ -130,7 +130,7 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
             f"{self.portal.absolute_url()}/@@omnia-assistant-api",
         )
         self.assertNotIn("api_key", config)
-        self.assertEqual(config["csrf_token"], "csrf-token")
+        self.assertEqual(config["request_headers"], {"X-CSRF-TOKEN": "csrf-token"})
         self.assertEqual(config["model"], "gpt-4.1-mini")
         self.assertNotIn("base_prompt", config)
         self.assertEqual(
@@ -144,6 +144,21 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.assertEqual(config["layout"], "floating")
         self.assertEqual(config["initial_width"], 380)
         self.assertEqual(config["initial_height"], 520)
+
+    @patch("imio.omnia.assistant.adapters.createToken", return_value="csrf-token")
+    def test_request_headers_from_overrides_keep_the_csrf_token(self, _mock_token):
+        from imio.omnia.assistant.adapters import OmniaAssistantAdapter
+
+        class Adapter(OmniaAssistantAdapter):
+            def _get_config_overrides(self):
+                return {"request_headers": {"X-Extra": "1"}}
+
+        config = Adapter(self.portal, self.request).get_config()
+
+        self.assertEqual(
+            config["request_headers"],
+            {"X-Extra": "1", "X-CSRF-TOKEN": "csrf-token"},
+        )
 
     def test_optional_fields_are_omitted_when_empty(self):
         with patch(
