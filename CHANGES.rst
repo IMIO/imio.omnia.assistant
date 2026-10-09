@@ -5,8 +5,8 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-- Bump @imiobe/omnia-assistant-ui from 0.3.2 to 2.8.0 and stop sending the
-  HMAC token it no longer uses.
+- Bump @imiobe/omnia-assistant-ui from 0.3.2 to 2.x and replace the HMAC
+  token by Plone's CSRF token (``csrf_token``, sent as ``X-CSRF-TOKEN``).
   [chris-adam]
 
 - Replace the ``mode`` setting by ``layout`` (``floating`` / ``sidebar``),

@@ -28,7 +28,7 @@ Features
 - **Keyboard shortcut** — ``Alt+I`` toggles the panel open/closed.
 - **Secure by design** — API credentials never reach the browser; all
   requests go through ``@@omnia-assistant-api``, guarded by a Plone
-  permission and an Origin check.
+  permission, an Origin check and Plone's CSRF token.
 - **Configurable** — system prompt, disclaimer, model, display dimensions,
   conversation length, and context extraction are all adjustable from the
   control panel.
@@ -132,6 +132,11 @@ The widget sends no ``Authorization`` header. The caller must have the
 ``imio.omnia.core`` grants to ``Authenticated`` users: the same-origin
 ``fetch()`` carries the session cookie. Requests whose ``Origin`` host differs
 from the portal's are rejected.
+
+Every request must also carry plone.protect's CSRF token in an
+``X-CSRF-TOKEN`` header, otherwise the proxy answers ``403``. The viewlet
+exposes it as ``csrf_token`` in ``window.omnia_assistant_settings``, for
+anonymous visitors too. The widget sends it on the chat and MCP requests.
 
 Projects that need anonymous access can override that permission mapping in
 their own GenericSetup ``rolemap.xml``.

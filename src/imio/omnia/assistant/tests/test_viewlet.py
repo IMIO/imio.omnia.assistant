@@ -109,7 +109,8 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
 
         self.assertIsNone(self._make_viewlet().config_json())
 
-    def test_config_json_uses_registry_values_and_defaults(self):
+    @patch("imio.omnia.assistant.adapters.createToken", return_value="csrf-token")
+    def test_config_json_uses_registry_values_and_defaults(self, _mock_token):
         with patch(
             "imio.omnia.assistant.adapters.api.portal.get_registry_record",
             side_effect=self._registry_getter(
@@ -129,6 +130,7 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
             f"{self.portal.absolute_url()}/@@omnia-assistant-api",
         )
         self.assertNotIn("api_key", config)
+        self.assertEqual(config["csrf_token"], "csrf-token")
         self.assertEqual(config["model"], "gpt-4.1-mini")
         self.assertNotIn("base_prompt", config)
         self.assertEqual(

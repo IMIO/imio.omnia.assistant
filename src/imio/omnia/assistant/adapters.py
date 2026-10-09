@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from plone import api
-from zope.component import adapter
-from zope.interface import Interface
-from zope.interface import implementer
-from zope.publisher.interfaces.browser import IBrowserRequest
-
 from imio.omnia.assistant.interfaces import IOmniaAssistantAdapter
+from plone import api
+from plone.protect.authenticator import createToken
+from zope.component import adapter
+from zope.interface import implementer
+from zope.interface import Interface
+from zope.publisher.interfaces.browser import IBrowserRequest
 
 
 _SETTINGS_PREFIX = (
@@ -88,4 +88,6 @@ class OmniaAssistantAdapter:
         config["api_service_url"] = (
             f"{self.context.absolute_url()}/@@omnia-assistant-api"
         )
+        # Sent back by the widget as an X-CSRF-TOKEN header.
+        config["csrf_token"] = createToken()
         return config

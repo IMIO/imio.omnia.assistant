@@ -8,6 +8,7 @@ import httpx2
 from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from plone.protect.authenticator import createToken
 from ZPublisher.Iterators import IUnboundStreamIterator
 from zope.component import getMultiAdapter
 
@@ -38,12 +39,10 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
 
     Security gates (in order):
       1. Origin header: if present, must match the portal's domain → 403
-      2. assistant must be enabled → 404
-      3. openai_api_url: must be non-empty → 503
-      4. Request body: must be valid JSON → 400
-
-    No Authorization header is required: the widget sends none, and access
-    is enforced by the view permission.
+      2. CSRF token (X-CSRF-TOKEN header): must be valid → 403
+      3. assistant must be enabled → 404
+      4. openai_api_url: must be non-empty → 503
+      5. Request body: must be valid JSON → 400
 
     All Plone machinery (registry, component lookup) runs for real.
     Only httpx2 and getMultiAdapter are mocked for upstream tests.
@@ -64,9 +63,13 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.request._auth = ""
         self.request.environ.pop("HTTP_ORIGIN", None)
 
-    def _make_view(self, body=None, path_segments=None):
+    def _make_view(self, body=None, path_segments=None, with_csrf=True):
         """Instantiate OmniaAssistantOpenAIProxyView directly."""
         self.request.BODY = body if body is not None else b""
+        if with_csrf:
+            self.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
+        else:
+            self.request.environ.pop("HTTP_X_CSRF_TOKEN", None)
         view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
         for seg in path_segments or []:
             view.publishTraverse(self.request, seg)
@@ -120,14 +123,16 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         view()
         self.assertEqual(self.request.response.getStatus(), 503)
 
-    def test_missing_auth_header_reaches_next_gate(self):
-        """omnia-assistant-ui 2.x sends no Authorization header: not a 401."""
-        self.request._auth = ""
-        view = self._make_view()
-        view()
-        self.assertEqual(self.request.response.getStatus(), 503)
+    # --- CSRF token (gate 2) ---
 
-    # --- assistant availability (gate 2) ---
+    def test_missing_csrf_token_returns_403(self):
+        """A request without the X-CSRF-TOKEN header returns 403."""
+        view = self._make_view(with_csrf=False)
+        result = json.loads(view())
+        self.assertEqual(self.request.response.getStatus(), 403)
+        self.assertEqual(result, {"error": "Invalid CSRF token"})
+
+    # --- assistant availability (gate 3) ---
 
     def test_proxy_disabled_returns_404(self):
         """When the default adapter sees the assistant as disabled, return 404."""
@@ -150,7 +155,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.assertEqual(self.request.response.getStatus(), 404)
         self.assertEqual(result, {"error": "Not found"})
 
-    # --- OpenAI URL not configured (gate 3) ---
+    # --- OpenAI URL not configured (gate 4) ---
 
     def test_missing_openai_url_returns_503(self):
         """When openai_api_url is empty the view returns 503."""
@@ -162,7 +167,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.assertEqual(self.request.response.getStatus(), 503)
         self.assertEqual(result, {"error": "OpenAI API URL not configured"})
 
-    # --- Body validation (gate 4) ---
+    # --- Body validation (gate 5) ---
 
     def test_invalid_json_body_returns_400(self):
         """A non-JSON request body returns 400."""

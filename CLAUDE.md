@@ -73,9 +73,10 @@ make clean-js                   # Remove built artifact from static/
 The `OmniaAssistantConfigViewlet` reads registry values and points the frontend at the local proxy:
 
 - `api_service_url` → `context.absolute_url()/@@omnia-assistant-api`
+- `csrf_token` → `plone.protect.authenticator.createToken()`; the widget sends it back as an `X-CSRF-TOKEN` header (chat and MCP requests)
 - `model`, `include_page_content`, `page_content_selector`, `page_content_clean`, `max_context_chars`, `layout`, `initial_width`, `initial_height`, `disclaimer` → from `IOmniaAssistantSettings`
 
-The widget (2.x) sends no `Authorization` header. The proxy relies on the view permission (the same-origin fetch carries the session cookie) and the Origin check, which keeps upstream credentials server-side.
+The widget (2.x) sends no `Authorization` header. The proxy relies on the view permission (the same-origin fetch carries the session cookie), the Origin check and the CSRF token (403 when missing or invalid). Upstream credentials stay server-side.
 
 The page is not sent up front: the widget offers the model a `read_page` tool that runs in the browser. The configured model must support tool calling, and `base_prompt` should tell it to call `read_page`.
 

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
-
 from imio.omnia.assistant import _
 from imio.omnia.core.browser.controlpanel import OmniaCoreControlPanelFormWrapper
 from imio.omnia.core.interfaces import IOmniaOpenAIService
@@ -10,11 +8,14 @@ from plone.z3cform import layout
 from zope import schema
 from zope.component import getMultiAdapter
 from zope.globalrequest import getRequest
-from zope.interface import Interface
 from zope.interface import implementer
+from zope.interface import Interface
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
+
+import logging
+
 
 logger = logging.getLogger(__name__)
 
