@@ -6,7 +6,6 @@ from zope.interface import implementer
 from zope.publisher.interfaces.browser import IBrowserRequest
 
 from imio.omnia.assistant.interfaces import IOmniaAssistantAdapter
-from imio.omnia.core.tokens import generate_token
 
 
 _SETTINGS_PREFIX = (
@@ -55,10 +54,9 @@ class OmniaAssistantAdapter:
             "max_context_chars": self._get_registry_record(
                 f"{_SETTINGS_PREFIX}.max_context_chars", 20000
             ),
-            "max_messages_per_session": self._get_registry_record(
-                f"{_SETTINGS_PREFIX}.max_messages_per_session", 0
+            "layout": self._get_registry_record(
+                f"{_SETTINGS_PREFIX}.layout", "floating"
             ),
-            "mode": self._get_registry_record(f"{_SETTINGS_PREFIX}.mode", "floating"),
             "initial_width": self._get_registry_record(
                 f"{_SETTINGS_PREFIX}.initial_width", 380
             ),
@@ -90,5 +88,4 @@ class OmniaAssistantAdapter:
         config["api_service_url"] = (
             f"{self.context.absolute_url()}/@@omnia-assistant-api"
         )
-        config["api_key"] = generate_token(api.portal.get().absolute_url())
         return config

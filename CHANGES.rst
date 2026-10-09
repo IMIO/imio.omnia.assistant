@@ -5,7 +5,13 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bump @imiobe/omnia-assistant-ui from 0.3.2 to 2.8.0 and stop sending the
+  HMAC token it no longer uses.
+  [chris-adam]
+
+- Replace the ``mode`` setting by ``layout`` (``floating`` / ``sidebar``),
+  migrated by upgrade step 1003.
+  [chris-adam]
 
 
 1.0 (2026-08-03)

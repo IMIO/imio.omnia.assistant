@@ -8,7 +8,7 @@ Plone 6 add-on providing the Omnia AI chat assistant for Plone. It adds a config
 src/imio/omnia/assistant/
 ├── browser/
 │   ├── controlpanel.py         # @@omnia-assistant-settings registry form + model vocabulary
-│   ├── viewlets.py             # Injects runtime config and signed proxy token into pages
+│   ├── viewlets.py             # Injects runtime config into pages
 │   ├── templates/
 │   │   └── omnia_assistant_config.pt
 │   │                           # <script> setting window.omnia_assistant_settings
@@ -42,8 +42,8 @@ The chat widget is developed in its own repository and published to npm as
 build-js` copies its built `dist/` file into the committed asset under
 `browser/static/`.
 
-The published package ships a single self-contained UMD bundle (Preact and
-CSS both bundled inside, styles injected at runtime) — there is no separate
+The published package ships a single self-contained UMD bundle (React and
+CSS both bundled inside, rendered in a shadow root) — there is no separate
 CSS file to copy.
 
 ### Bumping the UI version
@@ -64,19 +64,20 @@ make clean-js                   # Remove built artifact from static/
 
 ### How the widget is loaded
 
-1. `omnia-assistant-ui.js` (self-contained, Preact and styles bundled inside) is registered as the `plone.bundles/omnia-assistant` bundle.
+1. `omnia-assistant-ui.js` (self-contained, React and styles bundled inside) is registered as the `plone.bundles/omnia-assistant` bundle.
 2. The `OmniaAssistantConfigViewlet` injects `window.omnia_assistant_settings` into the page header.
 3. The frontend bundle auto-mounts the assistant using that config.
 
 ### Config bridge (viewlet)
 
-The `OmniaAssistantConfigViewlet` reads registry values, points the frontend at the local proxy, and generates a short-lived HMAC Bearer token:
+The `OmniaAssistantConfigViewlet` reads registry values and points the frontend at the local proxy:
 
 - `api_service_url` → `context.absolute_url()/@@omnia-assistant-api`
-- `api_key` → signed token from `imio.omnia.core.tokens.generate_token()`
-- `model`, `include_page_content`, `page_content_selector`, `page_content_clean`, `max_context_chars`, `mode`, `initial_width`, `initial_height`, `disclaimer` → from `IOmniaAssistantSettings`
+- `model`, `include_page_content`, `page_content_selector`, `page_content_clean`, `max_context_chars`, `layout`, `initial_width`, `initial_height`, `disclaimer` → from `IOmniaAssistantSettings`
 
-This keeps upstream credentials server-side.
+The widget (2.x) sends no `Authorization` header. The proxy relies on the view permission (the same-origin fetch carries the session cookie) and the Origin check, which keeps upstream credentials server-side.
+
+The page is not sent up front: the widget offers the model a `read_page` tool that runs in the browser. The configured model must support tool calling, and `base_prompt` should tell it to call `read_page`.
 
 The `base_prompt` registry setting is no longer exposed to the browser for the
 Plone integration. It is injected server-side by the assistant proxy.
@@ -134,7 +135,7 @@ Stored under `imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings`
 - `page_content_clean` — Use plain text (`innerText`) instead of HTML
 - `max_context_chars` — Max characters of page content injected as context
 - `max_messages_per_session` — Max number of user messages allowed per conversation
-- `mode` — Panel mode: `floating` or `fixed`
+- `layout` — Panel layout: `floating` or `sidebar`
 - `initial_width` — Initial panel width in pixels
 - `initial_height` — Initial panel height in pixels
 - `disclaimer` — Optional disclaimer shown at the bottom of the panel
@@ -143,7 +144,7 @@ The install profile registers the assistant JS bundle in Plone's bundle registry
 
 ## Architecture notes
 
-- Depends on `imio.omnia.core` for the shared control panel wrapper, token generation, and the base OpenAI proxy implementation that the assistant subclasses at `@@omnia-assistant-api`.
+- Depends on `imio.omnia.core` for the shared control panel wrapper and the base OpenAI proxy implementation that the assistant subclasses at `@@omnia-assistant-api`.
 - Auto-included in Plone via `z3c.autoinclude.plugin` entry point (target: `plone`).
 - Browser layer `IImioOmniaAssistantLayer` gates all views and overrides — only active when the add-on is installed.
 - Control panel view is registered at `@@omnia-assistant-settings` and requires `cmf.ManagePortal`.

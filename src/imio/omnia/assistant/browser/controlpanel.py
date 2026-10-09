@@ -69,7 +69,12 @@ class IOmniaAssistantSettings(Interface):
     )
     base_prompt = schema.Text(
         title=_("System prompt"),
-        description=_("System prompt sent with every conversation."),
+        description=_(
+            "System prompt sent with every conversation. The assistant reads "
+            "the page through the read_page tool: tell the model to call "
+            "read_page before answering a question about the page. The model "
+            "must support tool calling."
+        ),
         required=False,
     )
     include_page_content = schema.Bool(
@@ -108,10 +113,13 @@ class IOmniaAssistantSettings(Interface):
         default=0,
         min=0,
     )
-    mode = schema.Choice(
-        title=_("Display mode"),
-        description=_("Panel display mode: floating (draggable) or fixed."),
-        values=["floating", "fixed"],
+    layout = schema.Choice(
+        title=_("Layout"),
+        description=_(
+            "floating: a panel opening from a round button in the bottom-right "
+            "corner. sidebar: a panel docked on the right that pushes the page."
+        ),
+        values=["floating", "sidebar"],
         required=False,
         default="floating",
     )

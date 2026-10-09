@@ -13,7 +13,6 @@ from zope.component import getMultiAdapter
 
 from imio.omnia.core.browser.proxy import SSEStreamIterator
 from imio.omnia.assistant.browser.proxy import OmniaAssistantOpenAIProxyView
-from imio.omnia.core.tokens import generate_token
 from imio.omnia.assistant.testing import IMIO_OMNIA_ASSISTANT_INTEGRATION_TESTING
 
 _UPSTREAM_URL = "https://api.example.com"
@@ -39,12 +38,14 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
 
     Security gates (in order):
       1. Origin header: if present, must match the portal's domain → 403
-      2. Bearer token: must be present → 401; must be valid HMAC → 403
-      3. assistant must be enabled → 404
-      4. openai_api_url: must be non-empty → 503
-      5. Request body: must be valid JSON → 400
+      2. assistant must be enabled → 404
+      3. openai_api_url: must be non-empty → 503
+      4. Request body: must be valid JSON → 400
 
-    All Plone machinery (registry, tokens, component lookup) runs for real.
+    No Authorization header is required: the widget sends none, and access
+    is enforced by the view permission.
+
+    All Plone machinery (registry, component lookup) runs for real.
     Only httpx2 and getMultiAdapter are mocked for upstream tests.
     """
 
@@ -63,14 +64,9 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.request._auth = ""
         self.request.environ.pop("HTTP_ORIGIN", None)
 
-    def _make_view(self, body=None, with_auth=True, path_segments=None):
+    def _make_view(self, body=None, path_segments=None):
         """Instantiate OmniaAssistantOpenAIProxyView directly."""
         self.request.BODY = body if body is not None else b""
-        if with_auth:
-            token = generate_token(self.portal.absolute_url())
-            self.request._auth = f"Bearer {token}"
-        else:
-            self.request._auth = ""
         view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
         for seg in path_segments or []:
             view.publishTraverse(self.request, seg)
@@ -124,32 +120,14 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         view()
         self.assertEqual(self.request.response.getStatus(), 503)
 
-    # --- Bearer token check (gate 2) ---
+    def test_missing_auth_header_reaches_next_gate(self):
+        """omnia-assistant-ui 2.x sends no Authorization header: not a 401."""
+        self.request._auth = ""
+        view = self._make_view()
+        view()
+        self.assertEqual(self.request.response.getStatus(), 503)
 
-    def test_missing_auth_header_returns_401(self):
-        """A request without an Authorization header returns 401."""
-        view = self._make_view(with_auth=False)
-        result = json.loads(view())
-        self.assertEqual(self.request.response.getStatus(), 401)
-        self.assertEqual(result, {"error": "Missing authorization"})
-
-    def test_malformed_bearer_returns_401(self):
-        """An Authorization header that doesn't start with 'Bearer ' returns 401."""
-        self.request._auth = "Basic dXNlcjpwYXNz"
-        view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
-        result = json.loads(view())
-        self.assertEqual(self.request.response.getStatus(), 401)
-        self.assertEqual(result, {"error": "Missing authorization"})
-
-    def test_invalid_token_returns_403(self):
-        """A Bearer token that fails HMAC validation returns 403."""
-        self.request._auth = "Bearer 9999999999:deadbeef"
-        view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
-        result = json.loads(view())
-        self.assertEqual(self.request.response.getStatus(), 403)
-        self.assertEqual(result, {"error": "Invalid or expired token"})
-
-    # --- assistant availability (gate 3) ---
+    # --- assistant availability (gate 2) ---
 
     def test_proxy_disabled_returns_404(self):
         """When the default adapter sees the assistant as disabled, return 404."""
@@ -172,7 +150,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.assertEqual(self.request.response.getStatus(), 404)
         self.assertEqual(result, {"error": "Not found"})
 
-    # --- OpenAI URL not configured (gate 4) ---
+    # --- OpenAI URL not configured (gate 3) ---
 
     def test_missing_openai_url_returns_503(self):
         """When openai_api_url is empty the view returns 503."""
@@ -184,7 +162,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.assertEqual(self.request.response.getStatus(), 503)
         self.assertEqual(result, {"error": "OpenAI API URL not configured"})
 
-    # --- Body validation (gate 5) ---
+    # --- Body validation (gate 4) ---
 
     def test_invalid_json_body_returns_400(self):
         """A non-JSON request body returns 400."""
