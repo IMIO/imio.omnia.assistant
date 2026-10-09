@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.1 (unreleased)
+1.1 (2026-10-09)
 ----------------
 
 - Bump @imiobe/omnia-assistant-ui from 0.3.2 to 2.9.0 and replace the HMAC
