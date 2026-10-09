@@ -14,7 +14,7 @@ long_description = '\n\n'.join([
 
 setup(
     name='imio.omnia.assistant',
-    version='1.1',
+    version='1.2.dev0',
     description="AI chat assistant widget integrating iMio's Omnia API for Plone",
     long_description=long_description,
     # Get more from https://pypi.org/classifiers/
