@@ -42,6 +42,21 @@ class TestSetup(unittest.TestCase):
             IImioOmniaAssistantLayer,
             utils.registered_layers())
 
+    def test_upgrade_1002_to_1003_replaces_mode_by_layout(self):
+        from imio.omnia.assistant.upgrades import upgrade_1002_to_1003
+        from plone.registry import field
+        from plone.registry import Record
+
+        registry = getUtility(IRegistry)
+        prefix = 'imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings'
+        del registry.records[f'{prefix}.layout']
+        registry.records[f'{prefix}.mode'] = Record(field.TextLine(), 'fixed')
+
+        upgrade_1002_to_1003(None)
+
+        self.assertNotIn(f'{prefix}.mode', registry.records)
+        self.assertEqual(registry[f'{prefix}.layout'], 'floating')
+
 
 class TestUninstall(unittest.TestCase):
 

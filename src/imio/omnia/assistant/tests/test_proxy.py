@@ -8,12 +8,12 @@ import httpx2
 from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from plone.protect.authenticator import createToken
 from ZPublisher.Iterators import IUnboundStreamIterator
 from zope.component import getMultiAdapter
 
 from imio.omnia.core.browser.proxy import SSEStreamIterator
 from imio.omnia.assistant.browser.proxy import OmniaAssistantOpenAIProxyView
-from imio.omnia.core.tokens import generate_token
 from imio.omnia.assistant.testing import IMIO_OMNIA_ASSISTANT_INTEGRATION_TESTING
 
 _UPSTREAM_URL = "https://api.example.com"
@@ -39,12 +39,12 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
 
     Security gates (in order):
       1. Origin header: if present, must match the portal's domain → 403
-      2. Bearer token: must be present → 401; must be valid HMAC → 403
+      2. CSRF token (X-CSRF-TOKEN header): must be valid → 403
       3. assistant must be enabled → 404
       4. openai_api_url: must be non-empty → 503
       5. Request body: must be valid JSON → 400
 
-    All Plone machinery (registry, tokens, component lookup) runs for real.
+    All Plone machinery (registry, component lookup) runs for real.
     Only httpx2 and getMultiAdapter are mocked for upstream tests.
     """
 
@@ -63,14 +63,13 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         self.request._auth = ""
         self.request.environ.pop("HTTP_ORIGIN", None)
 
-    def _make_view(self, body=None, with_auth=True, path_segments=None):
+    def _make_view(self, body=None, path_segments=None, with_csrf=True):
         """Instantiate OmniaAssistantOpenAIProxyView directly."""
         self.request.BODY = body if body is not None else b""
-        if with_auth:
-            token = generate_token(self.portal.absolute_url())
-            self.request._auth = f"Bearer {token}"
+        if with_csrf:
+            self.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
         else:
-            self.request._auth = ""
+            self.request.environ.pop("HTTP_X_CSRF_TOKEN", None)
         view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
         for seg in path_segments or []:
             view.publishTraverse(self.request, seg)
@@ -124,30 +123,14 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         view()
         self.assertEqual(self.request.response.getStatus(), 503)
 
-    # --- Bearer token check (gate 2) ---
+    # --- CSRF token (gate 2) ---
 
-    def test_missing_auth_header_returns_401(self):
-        """A request without an Authorization header returns 401."""
-        view = self._make_view(with_auth=False)
-        result = json.loads(view())
-        self.assertEqual(self.request.response.getStatus(), 401)
-        self.assertEqual(result, {"error": "Missing authorization"})
-
-    def test_malformed_bearer_returns_401(self):
-        """An Authorization header that doesn't start with 'Bearer ' returns 401."""
-        self.request._auth = "Basic dXNlcjpwYXNz"
-        view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
-        result = json.loads(view())
-        self.assertEqual(self.request.response.getStatus(), 401)
-        self.assertEqual(result, {"error": "Missing authorization"})
-
-    def test_invalid_token_returns_403(self):
-        """A Bearer token that fails HMAC validation returns 403."""
-        self.request._auth = "Bearer 9999999999:deadbeef"
-        view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
+    def test_missing_csrf_token_returns_403(self):
+        """A request without the X-CSRF-TOKEN header returns 403."""
+        view = self._make_view(with_csrf=False)
         result = json.loads(view())
         self.assertEqual(self.request.response.getStatus(), 403)
-        self.assertEqual(result, {"error": "Invalid or expired token"})
+        self.assertEqual(result, {"error": "Invalid CSRF token"})
 
     # --- assistant availability (gate 3) ---
 

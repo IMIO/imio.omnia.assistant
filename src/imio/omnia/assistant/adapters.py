@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from plone import api
-from zope.component import adapter
-from zope.interface import Interface
-from zope.interface import implementer
-from zope.publisher.interfaces.browser import IBrowserRequest
-
 from imio.omnia.assistant.interfaces import IOmniaAssistantAdapter
-from imio.omnia.core.tokens import generate_token
+from plone import api
+from plone.protect.authenticator import createToken
+from zope.component import adapter
+from zope.interface import implementer
+from zope.interface import Interface
+from zope.publisher.interfaces.browser import IBrowserRequest
 
 
 _SETTINGS_PREFIX = (
@@ -55,10 +54,9 @@ class OmniaAssistantAdapter:
             "max_context_chars": self._get_registry_record(
                 f"{_SETTINGS_PREFIX}.max_context_chars", 20000
             ),
-            "max_messages_per_session": self._get_registry_record(
-                f"{_SETTINGS_PREFIX}.max_messages_per_session", 0
+            "layout": self._get_registry_record(
+                f"{_SETTINGS_PREFIX}.layout", "floating"
             ),
-            "mode": self._get_registry_record(f"{_SETTINGS_PREFIX}.mode", "floating"),
             "initial_width": self._get_registry_record(
                 f"{_SETTINGS_PREFIX}.initial_width", 380
             ),
@@ -90,5 +88,9 @@ class OmniaAssistantAdapter:
         config["api_service_url"] = (
             f"{self.context.absolute_url()}/@@omnia-assistant-api"
         )
-        config["api_key"] = generate_token(api.portal.get().absolute_url())
+        # The widget (>= 2.9) adds these headers to its chat and MCP requests.
+        config["request_headers"] = {
+            **config.get("request_headers", {}),
+            "X-CSRF-TOKEN": createToken(),
+        }
         return config

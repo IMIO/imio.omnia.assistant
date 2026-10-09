@@ -5,28 +5,30 @@ imio.omnia.assistant
 A floating AI chat assistant for Plone 6, part of the
 `Omnia <https://gitlab.imio.be/imio/imio.omnia>`_ suite by iMio.
 
-This package adds a draggable, resizable chat widget to every page of the
-Plone site. The assistant streams responses from an OpenAI-compatible API
-through a secure server-side proxy, and can automatically inject the current
-page content as conversation context. It relies on ``imio.omnia.core`` for
+This package adds a chat widget (a floating panel or a right sidebar) to
+every page of the Plone site. The assistant streams responses from an
+OpenAI-compatible API through a secure server-side proxy, and can read the
+current page when a question needs it. It relies on ``imio.omnia.core`` for
 API connectivity, authentication, and the shared Omnia control panel.
 
 
 Features
 ========
 
-- **Floating or fixed panel** — draggable and resizable floating mode, or a
-  fixed sidebar anchored to the page edge.
+- **Floating panel or sidebar** — a panel opening from a round button in the
+  bottom-right corner, or docked on the right and pushing the page. The
+  visitor can switch between both from the panel header.
 - **Real-time streaming** — SSE-based chat completions streamed token by token.
-- **Page context injection** — current page content (HTML or plain text,
-  configurable via a CSS selector) is sent as a system message so the
-  assistant can answer questions about the page.
+- **Page reading** — the model calls a ``read_page`` tool, run in the browser,
+  that returns the page content (HTML or plain text, selected by a CSS
+  selector).
 - **Large-context handling** — when the page content exceeds the configured
-  limit the assistant prompts the user to select a relevant text excerpt
-  instead.
+  limit, the model asks the visitor to quote the relevant passage: selecting
+  text shows a « Demander à Omnia » button under it.
 - **Keyboard shortcut** — ``Alt+I`` toggles the panel open/closed.
 - **Secure by design** — API credentials never reach the browser; all
-  requests go through ``@@omnia-assistant-api`` with an HMAC-signed token.
+  requests go through ``@@omnia-assistant-api``, guarded by a Plone
+  permission, an Origin check and Plone's CSRF token.
 - **Configurable** — system prompt, disclaimer, model, display dimensions,
   conversation length, and context extraction are all adjustable from the
   control panel.
@@ -81,12 +83,13 @@ Field                          Purpose
                                (default: ``#content``)
 ``page_content_clean``         Use ``innerText`` instead of ``innerHTML``
                                for cleaner extraction (default: ``False``)
-``max_context_chars``          Maximum characters of page content to send
-                               (default: ``20000``)
+``max_context_chars``          Maximum characters of page content
+                               ``read_page`` returns (default: ``20000``)
 ``max_messages_per_session``   Maximum number of user messages allowed in a
                                single conversation (default: ``0``, unlimited)
-``mode``                       Panel display mode: ``floating`` (draggable)
-                               or ``fixed`` (sidebar, default: ``floating``)
+``layout``                     ``floating`` (round button + popover) or
+                               ``sidebar`` (docked right, default:
+                               ``floating``)
 ``initial_width``              Initial panel width in pixels (default: ``380``)
 ``initial_height``             Initial panel height in pixels (default: ``520``)
 ``disclaimer``                 Disclaimer text shown at the bottom of the panel
@@ -99,22 +102,15 @@ How it works
 Widget loading
 --------------
 
-Two Plone resource bundles are registered by the default GenericSetup profile:
+The default GenericSetup profile registers one Plone resource bundle,
+``omnia-assistant``: the self-contained UMD build of
+`@imiobe/omnia-assistant-ui <https://gitlab.imio.be/ia/omnia-assistant-ui>`_
+(React and styles bundled inside, rendered in a shadow root).
 
-- ``omnia-assistant-preact`` — Preact UMD (loaded first as a global).
-- ``omnia-assistant`` — the assistant UI library (depends on the preact
-  bundle).
-
-An ``OmniaAssistantConfigViewlet`` registered in ``plone.htmlhead`` renders a
-``<script>`` tag that:
-
-1. Sets ``window.omnia_assistant_settings`` with configuration from the Plone
-   registry (model, selectors, dimensions, etc.).
-2. Waits for the ``OmniaAssistantUI`` global to be available (exported by the
-   bundle).
-3. Calls ``OmniaAssistantUI.mount('omnia-assistant-root', window.omnia_assistant_settings)``
-   to mount the Preact widget into a ``<div id="omnia-assistant-root">`` that
-   the viewlet template appends to the page body.
+An ``OmniaAssistantConfigViewlet`` registered in ``plone.htmlhead`` sets
+``window.omnia_assistant_settings`` from the Plone registry (model, selectors,
+layout, dimensions, etc.). The bundle reads it and mounts itself into a
+``<div id="omnia-assistant-root">`` it appends to the page body.
 
 The widget is not rendered when the ``enabled`` setting is ``False``.
 More generally, page-level availability and server-side prompt composition are
@@ -131,11 +127,17 @@ The assistant proxy inherits from the shared
 the shared auth/streaming behavior, and forwards the request to the
 configured OpenAI-compatible gateway in real time.
 
-Authentication uses an HMAC Bearer token generated server-side by the viewlet
-(``imio.omnia.core.tokens.generate_token()``). Tokens are signed with the
-Plone site keyring and expire after 2 hours. By default, the caller must also
-have the ``imio.omnia.core: Access Omnia OpenAI proxy`` permission, which
-``imio.omnia.core`` grants to ``Authenticated`` users.
+The widget sends no ``Authorization`` header. The caller must have the
+``imio.omnia.core: Access Omnia OpenAI proxy`` permission, which
+``imio.omnia.core`` grants to ``Authenticated`` users: the same-origin
+``fetch()`` carries the session cookie. Requests whose ``Origin`` host differs
+from the portal's are rejected.
+
+Every request must also carry plone.protect's CSRF token in an
+``X-CSRF-TOKEN`` header, otherwise the proxy answers ``403``. The viewlet
+puts it in ``request_headers`` of ``window.omnia_assistant_settings``, for
+anonymous visitors too, and the widget (2.9.0 or later) adds those headers to
+its chat and MCP requests.
 
 Projects that need anonymous access can override that permission mapping in
 their own GenericSetup ``rolemap.xml``.
@@ -145,11 +147,14 @@ The request payload follows the OpenAI Chat Completions format::
     {
       "model": "<configured model>",
       "messages": [
-        { "role": "system", "content": "<page content>" },
-        { "role": "user",   "content": "<user message>" }
+        { "role": "user", "content": "<user message>" }
       ],
+      "tools": [{ "type": "function", "function": { "name": "read_page" } }],
       "stream": true
     }
+
+When the model calls ``read_page``, the widget runs it and calls the model
+again with the result as a ``tool`` message.
 
 If ``base_prompt`` is configured, the assistant proxy prepends it server-side
 as the first ``system`` message before dispatching upstream. The prompt is no
@@ -161,61 +166,56 @@ system prompt for the current context/request.
 Conversation length limit
 -------------------------
 
-When ``max_messages_per_session`` is greater than ``0``, the assistant counts
-user prompts in the current thread. Assistant replies do not consume the
-limit.
+When ``max_messages_per_session`` is greater than ``0``, the assistant proxy
+rejects (HTTP 400) any request whose payload contains more user messages than
+the configured limit; the widget shows the error in the reply. Assistant
+replies and tool results do not consume the limit. Starting a new conversation
+from the panel header ("Nouveau") resets the counter.
 
-Once the limit is reached:
+Page reading
+------------
 
-- the composer is disabled for the current thread,
-- the UI tells the user to start a new conversation,
-- the backend proxy also rejects any request whose payload contains more user
-  messages than the configured limit.
+When ``include_page_content`` is ``True``, the widget offers the model a
+``read_page`` tool. It returns the DOM content matched by
+``page_content_selector``, as ``innerHTML`` or ``innerText`` (controlled by
+``page_content_clean``). The page is never sent up front, so:
 
-Starting a new conversation from the panel header resets the counter because
-the limit is applied per thread, not across the whole browser session.
+- the configured model must support tool calling (``mistral-*`` and
+  ``zai-glm-5-2`` on the Omnia gateway do);
+- ``base_prompt`` should tell the model to call ``read_page`` before
+  answering a question about the page, otherwise it answers without reading
+  it.
 
-Page content injection
-----------------------
-
-When ``include_page_content`` is ``True``, the widget extracts DOM content
-using the CSS selector(s) in ``page_content_selector`` (a single selector
-string, or a JSON array of selectors). Each matching element contributes
-either its ``innerHTML`` or ``innerText`` (controlled by ``page_content_clean``),
-joined by blank lines.
-
-If the extracted content exceeds ``max_context_chars`` characters, the widget
-displays a warning banner and invites the user to select a specific text
-excerpt on the page. The selected text replaces the full page content as
-context for that turn.
+If the content exceeds ``max_context_chars`` characters, ``read_page`` tells
+the model to ask the visitor to quote the relevant passage.
 
 Uninstall
 ---------
 
-The uninstall handler disables both Plone bundles (``omnia-assistant`` and
-``omnia-assistant-preact``) by setting their ``enabled`` registry flag to
-``False``.
+The uninstall profile removes the assistant settings and the
+``omnia-assistant`` bundle from the registry.
 
 
 Frontend development
 ====================
 
-The assistant widget source lives in ``browser/resources/``. Built artifacts
-are committed to ``browser/static/`` and served via
+The widget is developed in its own repository and published to npm as
+``@imiobe/omnia-assistant-ui``. ``browser/resources/package.json`` pins the
+version; the built file is committed to ``browser/static/`` and served via
 ``++plone++imio.omnia.assistant/``.
 
-Rebuild after JS changes::
+After bumping the version::
 
-    make build-js          # npm ci + vite build + copy to static/
-    make clean-js          # remove built artifacts
+    make build-js          # npm ci + copy the UMD bundle to static/
+    make clean-js          # remove the built artifact
 
 Tests covering the registry export and proxy enforcement live in
 ``src/imio/omnia/assistant/tests/`` and should be kept in sync with any
 setting or frontend behavior changes.
 
-The frontend stack uses **Vite** (library mode), **Preact**,
-**@assistant-ui/react** (chat runtime), **Framer Motion** (animations),
-**Mousetrap** (keyboard shortcuts), and **Tailwind CSS v3**.
+The frontend stack uses **Vite** (library mode), **React**,
+**@assistant-ui/react** (chat runtime), **Mousetrap** (keyboard shortcuts),
+and **Tailwind CSS v4**.
 
 
 Translations

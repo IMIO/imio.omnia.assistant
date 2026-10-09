@@ -65,8 +65,7 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
             f"{self.PREFIX}.page_content_selector": "#content",
             f"{self.PREFIX}.page_content_clean": False,
             f"{self.PREFIX}.max_context_chars": 20000,
-            f"{self.PREFIX}.max_messages_per_session": 0,
-            f"{self.PREFIX}.mode": "floating",
+            f"{self.PREFIX}.layout": "floating",
             f"{self.PREFIX}.initial_width": 380,
             f"{self.PREFIX}.initial_height": 520,
             f"{self.PREFIX}.disclaimer": None,
@@ -110,9 +109,8 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
 
         self.assertIsNone(self._make_viewlet().config_json())
 
-    @patch("imio.omnia.assistant.adapters.generate_token")
-    def test_config_json_uses_registry_values_and_defaults(self, mock_token):
-        mock_token.return_value = "signed-token"
+    @patch("imio.omnia.assistant.adapters.createToken", return_value="csrf-token")
+    def test_config_json_uses_registry_values_and_defaults(self, _mock_token):
         with patch(
             "imio.omnia.assistant.adapters.api.portal.get_registry_record",
             side_effect=self._registry_getter(
@@ -122,7 +120,6 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
                     f"{self.PREFIX}.disclaimer": (
                         "Generated content may contain errors."
                     ),
-                    f"{self.PREFIX}.max_messages_per_session": 5,
                 }
             ),
         ):
@@ -132,7 +129,8 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
             config["api_service_url"],
             f"{self.portal.absolute_url()}/@@omnia-assistant-api",
         )
-        self.assertEqual(config["api_key"], "signed-token")
+        self.assertNotIn("api_key", config)
+        self.assertEqual(config["request_headers"], {"X-CSRF-TOKEN": "csrf-token"})
         self.assertEqual(config["model"], "gpt-4.1-mini")
         self.assertNotIn("base_prompt", config)
         self.assertEqual(
@@ -142,15 +140,27 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.assertEqual(config["page_content_selector"], "#content")
         self.assertFalse(config["page_content_clean"])
         self.assertEqual(config["max_context_chars"], 20000)
-        self.assertEqual(config["max_messages_per_session"], 5)
-        self.assertEqual(config["mode"], "floating")
+        self.assertNotIn("max_messages_per_session", config)
+        self.assertEqual(config["layout"], "floating")
         self.assertEqual(config["initial_width"], 380)
         self.assertEqual(config["initial_height"], 520)
-        mock_token.assert_called_once_with(self.portal.absolute_url())
 
-    @patch("imio.omnia.assistant.adapters.generate_token")
-    def test_optional_fields_are_omitted_when_empty(self, mock_token):
-        mock_token.return_value = "signed-token"
+    @patch("imio.omnia.assistant.adapters.createToken", return_value="csrf-token")
+    def test_request_headers_from_overrides_keep_the_csrf_token(self, _mock_token):
+        from imio.omnia.assistant.adapters import OmniaAssistantAdapter
+
+        class Adapter(OmniaAssistantAdapter):
+            def _get_config_overrides(self):
+                return {"request_headers": {"X-Extra": "1"}}
+
+        config = Adapter(self.portal, self.request).get_config()
+
+        self.assertEqual(
+            config["request_headers"],
+            {"X-Extra": "1", "X-CSRF-TOKEN": "csrf-token"},
+        )
+
+    def test_optional_fields_are_omitted_when_empty(self):
         with patch(
             "imio.omnia.assistant.adapters.api.portal.get_registry_record",
             side_effect=self._registry_getter(
@@ -166,9 +176,7 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.assertNotIn("base_prompt", config)
         self.assertNotIn("disclaimer", config)
 
-    @patch("imio.omnia.assistant.adapters.generate_token")
-    def test_config_json_serializes_config(self, mock_token):
-        mock_token.return_value = "signed-token"
+    def test_config_json_serializes_config(self):
         with patch(
             "imio.omnia.assistant.adapters.api.portal.get_registry_record",
             side_effect=self._registry_getter(
@@ -177,7 +185,7 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         ):
             payload = self._make_viewlet().config_json()
 
-        self.assertEqual(json.loads(payload)["api_key"], "signed-token")
+        self.assertEqual(json.loads(payload)["model"], "gpt-4.1-mini")
 
     @patch("imio.omnia.assistant.browser.viewlets.getMultiAdapter")
     def test_config_json_exposes_adapter_frontend_keys(
@@ -185,7 +193,6 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
     ):
         mock_get_multi_adapter.return_value = DummyOmniaAssistantAdapter(
             config={
-                "api_key": "signed-token",
                 "api_service_url": (
                     f"{self.portal.absolute_url()}/@@omnia-assistant-api"
                 ),
@@ -197,7 +204,6 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         )
         config = self._get_config()
 
-        self.assertEqual(config["api_key"], "signed-token")
         self.assertEqual(config["model"], "gpt-4.1-mini")
         self.assertEqual(config["welcome_message"], "Bonjour depuis l'addon.")
         self.assertEqual(

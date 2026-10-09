@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: imio.omnia.assistant\n"
-"POT-Creation-Date: 2026-04-02 00:00+0000\n"
+"POT-Creation-Date: 2026-10-09 08:34+0000\n"
 "PO-Revision-Date: 2026-04-02 00:00+0000\n"
 "Last-Translator: Antoine Duchêne <antoine.duchene@imio.be>\n"
 "Language-Team: French <fr@li.org>\n"
@@ -14,29 +14,21 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: imio.omnia.assistant\n"
 
-#: ../browser/controlpanel.py:131
+#: ../browser/controlpanel.py:149
 msgid "AI Assistant settings"
 msgstr "Paramètres de l'assistant IA"
 
-#: ../browser/controlpanel.py:83
+#: ../browser/controlpanel.py:88
 msgid "CSS selector to extract page content from."
 msgstr "Sélecteur CSS pour extraire le contenu de la page."
 
-#: ../browser/controlpanel.py:121
+#: ../browser/controlpanel.py:139
 msgid "Disclaimer"
 msgstr "Avertissement"
 
-#: ../browser/controlpanel.py:122
-msgid ""
-"Disclaimer text shown at the bottom of the chat panel. Leave empty for the "
-"default French disclaimer."
-msgstr ""
-"Texte d'avertissement affiché en bas du panneau de chat. Laisser vide pour "
-"l'avertissement français par défaut."
-
-#: ../browser/controlpanel.py:102
-msgid "Display mode"
-msgstr "Mode d'affichage"
+#: ../browser/controlpanel.py:140
+msgid "Disclaimer text shown at the bottom of the chat panel. Leave empty for the default French disclaimer."
+msgstr "Texte d'avertissement affiché en bas du panneau de chat. Laisser vide pour l'avertissement français par défaut."
 
 #: ../browser/controlpanel.py:60
 msgid "Enable or disable the AI assistant globally."
@@ -46,41 +38,45 @@ msgstr "Activer ou désactiver l'assistant IA globalement."
 msgid "Enabled"
 msgstr "Activé"
 
-#: ../browser/controlpanel.py:77
+#: ../browser/controlpanel.py:82
 msgid "Include current page content as context for the AI."
 msgstr "Inclure le contenu de la page actuelle comme contexte pour l'IA."
 
-#: ../browser/controlpanel.py:76
+#: ../browser/controlpanel.py:81
 msgid "Include page content"
 msgstr "Inclure le contenu de la page"
 
-#: ../browser/controlpanel.py:116
+#: ../browser/controlpanel.py:134
 msgid "Initial panel height in pixels."
 msgstr "Hauteur initiale du panneau en pixels."
 
-#: ../browser/controlpanel.py:110
+#: ../browser/controlpanel.py:128
 msgid "Initial panel width in pixels."
 msgstr "Largeur initiale du panneau en pixels."
 
-#: ../browser/controlpanel.py:96
+#: ../configure.zcml:25
+msgid "Installs the imio.omnia.assistant add-on. Provides an AI chat assistant widget for Plone."
+msgstr ""
+
+#: ../browser/controlpanel.py:117
+msgid "Layout"
+msgstr "Disposition"
+
+#: ../browser/controlpanel.py:101
 msgid "Max context characters"
 msgstr "Nombre maximum de caractères de contexte"
 
-#: ../browser/controlpanel.py:97
-msgid "Maximum characters of page content to include as context."
-msgstr "Nombre maximum de caractères du contenu de la page à inclure comme contexte."
-
-#: ../browser/controlpanel.py:102
+#: ../browser/controlpanel.py:107
 msgid "Max messages per conversation"
 msgstr "Nombre maximum de messages par conversation"
 
-#: ../browser/controlpanel.py:103
-msgid ""
-"Maximum number of user messages allowed in a single conversation. "
-"Set to 0 for no limit."
-msgstr ""
-"Nombre maximum de messages utilisateur autorisés dans une conversation. "
-"Mettre à 0 pour ne pas limiter."
+#: ../browser/controlpanel.py:102
+msgid "Maximum characters of page content to include as context."
+msgstr "Nombre maximum de caractères du contenu de la page à inclure comme contexte."
+
+#: ../browser/controlpanel.py:108
+msgid "Maximum number of user messages allowed in a single conversation. Set to 0 for no limit."
+msgstr "Nombre maximum de messages utilisateur autorisés dans une conversation. Mettre à 0 pour ne pas limiter."
 
 #: ../browser/controlpanel.py:65
 msgid "Model"
@@ -90,19 +86,19 @@ msgstr "Modèle"
 msgid "Model for the OpenAI-compatible API."
 msgstr "Modèle pour l'API compatible OpenAI."
 
-#: ../browser/controlpanel.py:82
+#: ../configure.zcml:25
+msgid "Omnia AI Assistant"
+msgstr ""
+
+#: ../browser/controlpanel.py:87
 msgid "Page content CSS selector"
 msgstr "Sélecteur CSS du contenu de la page"
 
-#: ../browser/controlpanel.py:103
-msgid "Panel display mode: floating (draggable) or fixed."
-msgstr "Mode d'affichage du panneau : flottant (déplaçable) ou fixe."
-
-#: ../browser/controlpanel.py:115
+#: ../browser/controlpanel.py:133
 msgid "Panel height"
 msgstr "Hauteur du panneau"
 
-#: ../browser/controlpanel.py:109
+#: ../browser/controlpanel.py:127
 msgid "Panel width"
 msgstr "Largeur du panneau"
 
@@ -111,13 +107,25 @@ msgid "System prompt"
 msgstr "Prompt système"
 
 #: ../browser/controlpanel.py:72
-msgid "System prompt sent with every conversation."
-msgstr "Prompt système envoyé avec chaque conversation."
+msgid "System prompt sent with every conversation. The assistant reads the page through the read_page tool: tell the model to call read_page before answering a question about the page. The model must support tool calling."
+msgstr "Prompt système envoyé avec chaque conversation. L'assistant lit la page via l'outil read_page : demandez au modèle d'appeler read_page avant de répondre à une question sur la page. Le modèle doit prendre en charge l'appel d'outils."
 
-#: ../browser/controlpanel.py:89
+#: ../configure.zcml:34
+msgid "Uninstalls the imio.omnia.assistant add-on."
+msgstr ""
+
+#: ../browser/controlpanel.py:94
 msgid "Use innerText instead of innerHTML for page content extraction."
 msgstr "Utiliser innerText au lieu de innerHTML pour l'extraction du contenu de la page."
 
-#: ../browser/controlpanel.py:88
+#: ../browser/controlpanel.py:93
 msgid "Use plain text"
 msgstr "Utiliser le texte brut"
+
+#: ../browser/controlpanel.py:118
+msgid "floating: a panel opening from a round button in the bottom-right corner. sidebar: a panel docked on the right that pushes the page."
+msgstr "floating : panneau qui s'ouvre depuis un bouton rond en bas à droite. sidebar : panneau ancré à droite qui décale la page."
+
+#: ../configure.zcml:34
+msgid "imio.omnia.assistant (uninstall)"
+msgstr ""

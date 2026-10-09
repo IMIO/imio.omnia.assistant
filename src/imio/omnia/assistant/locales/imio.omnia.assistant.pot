@@ -3,8 +3,8 @@
 #FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 msgid ""
 msgstr ""
-"Project-Id-Version: imio.omnia.assistant\n"
-"POT-Creation-Date: 2026-04-02 00:00+0000\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2026-10-09 08:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,20 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: imio.omnia.assistant\n"
 
-#: ../browser/controlpanel.py:131
+#: ../browser/controlpanel.py:149
 msgid "AI Assistant settings"
 msgstr ""
 
-#: ../browser/controlpanel.py:83
+#: ../browser/controlpanel.py:88
 msgid "CSS selector to extract page content from."
 msgstr ""
 
-#: ../browser/controlpanel.py:121
+#: ../browser/controlpanel.py:139
 msgid "Disclaimer"
 msgstr ""
 
-#: ../browser/controlpanel.py:122
-msgid ""
-"Disclaimer text shown at the bottom of the chat panel. Leave empty for the "
-"default French disclaimer."
-msgstr ""
-
-#: ../browser/controlpanel.py:102
-msgid "Display mode"
+#: ../browser/controlpanel.py:140
+msgid "Disclaimer text shown at the bottom of the chat panel. Leave empty for the default French disclaimer."
 msgstr ""
 
 #: ../browser/controlpanel.py:60
@@ -47,28 +41,44 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: ../browser/controlpanel.py:77
+#: ../browser/controlpanel.py:82
 msgid "Include current page content as context for the AI."
 msgstr ""
 
-#: ../browser/controlpanel.py:76
+#: ../browser/controlpanel.py:81
 msgid "Include page content"
 msgstr ""
 
-#: ../browser/controlpanel.py:116
+#: ../browser/controlpanel.py:134
 msgid "Initial panel height in pixels."
 msgstr ""
 
-#: ../browser/controlpanel.py:110
+#: ../browser/controlpanel.py:128
 msgid "Initial panel width in pixels."
 msgstr ""
 
-#: ../browser/controlpanel.py:96
+#: ../configure.zcml:25
+msgid "Installs the imio.omnia.assistant add-on. Provides an AI chat assistant widget for Plone."
+msgstr ""
+
+#: ../browser/controlpanel.py:117
+msgid "Layout"
+msgstr ""
+
+#: ../browser/controlpanel.py:101
 msgid "Max context characters"
 msgstr ""
 
-#: ../browser/controlpanel.py:97
+#: ../browser/controlpanel.py:107
+msgid "Max messages per conversation"
+msgstr ""
+
+#: ../browser/controlpanel.py:102
 msgid "Maximum characters of page content to include as context."
+msgstr ""
+
+#: ../browser/controlpanel.py:108
+msgid "Maximum number of user messages allowed in a single conversation. Set to 0 for no limit."
 msgstr ""
 
 #: ../browser/controlpanel.py:65
@@ -79,19 +89,19 @@ msgstr ""
 msgid "Model for the OpenAI-compatible API."
 msgstr ""
 
-#: ../browser/controlpanel.py:82
+#: ../configure.zcml:25
+msgid "Omnia AI Assistant"
+msgstr ""
+
+#: ../browser/controlpanel.py:87
 msgid "Page content CSS selector"
 msgstr ""
 
-#: ../browser/controlpanel.py:103
-msgid "Panel display mode: floating (draggable) or fixed."
-msgstr ""
-
-#: ../browser/controlpanel.py:115
+#: ../browser/controlpanel.py:133
 msgid "Panel height"
 msgstr ""
 
-#: ../browser/controlpanel.py:109
+#: ../browser/controlpanel.py:127
 msgid "Panel width"
 msgstr ""
 
@@ -100,13 +110,25 @@ msgid "System prompt"
 msgstr ""
 
 #: ../browser/controlpanel.py:72
-msgid "System prompt sent with every conversation."
+msgid "System prompt sent with every conversation. The assistant reads the page through the read_page tool: tell the model to call read_page before answering a question about the page. The model must support tool calling."
 msgstr ""
 
-#: ../browser/controlpanel.py:89
+#: ../configure.zcml:34
+msgid "Uninstalls the imio.omnia.assistant add-on."
+msgstr ""
+
+#: ../browser/controlpanel.py:94
 msgid "Use innerText instead of innerHTML for page content extraction."
 msgstr ""
 
-#: ../browser/controlpanel.py:88
+#: ../browser/controlpanel.py:93
 msgid "Use plain text"
+msgstr ""
+
+#: ../browser/controlpanel.py:118
+msgid "floating: a panel opening from a round button in the bottom-right corner. sidebar: a panel docked on the right that pushes the page."
+msgstr ""
+
+#: ../configure.zcml:34
+msgid "imio.omnia.assistant (uninstall)"
 msgstr ""

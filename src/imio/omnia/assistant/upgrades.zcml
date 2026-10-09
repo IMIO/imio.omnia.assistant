@@ -12,4 +12,13 @@
     profile="imio.omnia.assistant:default"
   />
 
+  <genericsetup:upgradeStep
+    title="Replace the assistant display mode by the layout setting"
+    description="omnia-assistant-ui 2.x ignores mode (floating/fixed); registers layout (floating/sidebar) and removes the mode record."
+    source="1002"
+    destination="1003"
+    handler=".upgrades.upgrade_1002_to_1003"
+    profile="imio.omnia.assistant:default"
+  />
+
 </configure>

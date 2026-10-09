@@ -5,7 +5,17 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bump @imiobe/omnia-assistant-ui from 0.3.2 to 2.9.0 and replace the HMAC
+  token by Plone's CSRF token (``X-CSRF-TOKEN`` header).
+  [chris-adam]
+
+- Replace the ``mode`` setting by ``layout`` (``floating`` / ``sidebar``),
+  migrated by upgrade step 1003.
+  [chris-adam]
+
+- Require imio.omnia.core 1.3: its proxy checks the CSRF token the widget
+  sends.
+  [duchenean]
 
 
 1.0 (2026-08-03)
