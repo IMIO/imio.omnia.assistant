@@ -5,7 +5,12 @@ Changelog
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add MCP server settings to the assistant control panel: the MCP servers URL
+  (``mcp_url``) and a checkbox list to pick, among the servers the package
+  offers (``omnia`` for now), those whose tools the assistant may use.
+  The proxy relays the widget's ``{name}/mcp`` requests to
+  ``{mcp_url}/{name}/mcp``. Upgrade step 1004.
+  [thomlamb]
 
 
 1.1 (2026-10-09)

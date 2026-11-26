@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from imio.omnia.assistant.browser.controlpanel import MCP_SERVERS
 from imio.omnia.assistant.interfaces import IOmniaAssistantAdapter
 from plone import api
 from plone.protect.authenticator import createToken
@@ -39,6 +40,18 @@ class OmniaAssistantAdapter:
     def get_system_prompt(self):
         return self._get_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "")
 
+    def get_mcp_server_urls(self):
+        """Map the selected MCP server names to their endpoint URLs.
+
+        Empty without an MCP URL. A selected server no longer offered by the
+        package is dropped.
+        """
+        base_url = (self._get_registry_record(f"{_SETTINGS_PREFIX}.mcp_url") or "").strip().rstrip("/")
+        if not base_url:
+            return {}
+        selected = self._get_registry_record(f"{_SETTINGS_PREFIX}.mcp_servers", []) or []
+        return {name: f"{base_url}/{name}/mcp" for name in selected if name in MCP_SERVERS}
+
     def _get_registry_config(self):
         config = {
             "model": self._get_registry_record(f"{_SETTINGS_PREFIX}.model", ""),
@@ -63,6 +76,9 @@ class OmniaAssistantAdapter:
             "initial_height": self._get_registry_record(
                 f"{_SETTINGS_PREFIX}.initial_height", 520
             ),
+            # Names only: the widget calls @@omnia-assistant-api/{name}/mcp and
+            # the proxy resolves the URL server-side.
+            "mcp_servers": list(self.get_mcp_server_urls()),
         }
         disclaimer = self._get_registry_record(f"{_SETTINGS_PREFIX}.disclaimer")
         if disclaimer:

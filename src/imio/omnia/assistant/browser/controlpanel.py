@@ -5,11 +5,13 @@ from imio.omnia.core.interfaces import IOmniaOpenAIService
 from plone import api
 from plone.app.registry.browser.controlpanel import RegistryEditForm
 from plone.z3cform import layout
+from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from zope import schema
 from zope.component import getMultiAdapter
 from zope.globalrequest import getRequest
 from zope.interface import implementer
 from zope.interface import Interface
+from zope.interface import Invalid
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
@@ -22,6 +24,15 @@ logger = logging.getLogger(__name__)
 _MODEL_REGISTRY_KEY = (
     "imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings.model"
 )
+# MCP servers the assistant can offer: Omnia has no endpoint listing them yet.
+# Each one answers at {mcp_url}/{name}/mcp.
+MCP_SERVERS = ("omnia",)
+
+
+def validate_mcp_url(value):
+    if value and not value.startswith(("https://", "http://")):
+        raise Invalid(_("The URL must start with https://"))
+    return True
 
 
 @implementer(IVocabularyFactory)
@@ -55,6 +66,16 @@ class OmniaModelsVocabularyFactory:
         return SimpleVocabulary(terms)
 
 
+@implementer(IVocabularyFactory)
+class OmniaMCPServersVocabularyFactory:
+    """Vocabulary of the MCP servers the assistant can offer."""
+
+    def __call__(self, context):
+        return SimpleVocabulary(
+            [SimpleTerm(value=name, token=name, title=name) for name in MCP_SERVERS]
+        )
+
+
 class IOmniaAssistantSettings(Interface):
     enabled = schema.Bool(
         title=_("Enabled"),
@@ -77,6 +98,26 @@ class IOmniaAssistantSettings(Interface):
             "must support tool calling."
         ),
         required=False,
+    )
+    mcp_url = schema.TextLine(
+        title=_("MCP servers URL"),
+        description=_(
+            "Base URL of the MCP servers, e.g. https://mcp.app.imio.be: each "
+            "server answers at {URL}/{name}/mcp. The SSO-Apps token is only "
+            "sent to imio.be hosts."
+        ),
+        constraint=validate_mcp_url,
+        required=False,
+    )
+    mcp_servers = schema.List(
+        title=_("MCP servers"),
+        description=_(
+            "MCP servers whose tools the assistant may use. The model must "
+            "support tool calling."
+        ),
+        value_type=schema.Choice(vocabulary="imio.omnia.assistant.mcp_servers"),
+        required=False,
+        default=[],
     )
     include_page_content = schema.Bool(
         title=_("Include page content"),
@@ -149,6 +190,10 @@ class IOmniaAssistantSettings(Interface):
 class OmniaAssistantControlPanelForm(RegistryEditForm):
     label = _("AI Assistant settings")
     schema = IOmniaAssistantSettings
+
+    def updateFields(self):
+        super().updateFields()
+        self.fields["mcp_servers"].widgetFactory = CheckBoxFieldWidget
 
 
 OmniaAssistantControlPanelView = layout.wrap_form(

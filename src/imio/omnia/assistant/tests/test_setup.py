@@ -57,6 +57,19 @@ class TestSetup(unittest.TestCase):
         self.assertNotIn(f'{prefix}.mode', registry.records)
         self.assertEqual(registry[f'{prefix}.layout'], 'floating')
 
+    def test_upgrade_1003_to_1004_registers_the_mcp_settings(self):
+        from imio.omnia.assistant.upgrades import upgrade_1003_to_1004
+
+        registry = getUtility(IRegistry)
+        prefix = 'imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings'
+        for name in ('mcp_url', 'mcp_servers'):
+            del registry.records[f'{prefix}.{name}']
+
+        upgrade_1003_to_1004(None)
+
+        self.assertIsNone(registry[f'{prefix}.mcp_url'])
+        self.assertEqual(registry[f'{prefix}.mcp_servers'], [])
+
 
 class TestUninstall(unittest.TestCase):
 

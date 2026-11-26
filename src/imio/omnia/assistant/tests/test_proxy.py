@@ -10,7 +10,9 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from plone.protect.authenticator import createToken
 from ZPublisher.Iterators import IUnboundStreamIterator
+from plone.registry.interfaces import IRegistry
 from zope.component import getMultiAdapter
+from zope.component import getUtility
 
 from imio.omnia.core.browser.proxy import SSEStreamIterator
 from imio.omnia.assistant.browser.proxy import OmniaAssistantOpenAIProxyView
@@ -638,3 +640,230 @@ class TestSSEStreamIterator(unittest.TestCase):
         """SSEStreamIterator declares IUnboundStreamIterator so Zope streams it."""
         it = self._make_iterator([])
         self.assertTrue(IUnboundStreamIterator.providedBy(it))
+
+
+class TestOmniaAssistantMCPProxy(unittest.TestCase):
+    """``@@omnia-assistant-api/{name}/mcp`` relays to the selected MCP server."""
+
+    layer = IMIO_OMNIA_ASSISTANT_INTEGRATION_TESTING
+
+    TOOLS_LIST = {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}
+
+    def setUp(self):
+        self.portal = self.layer["portal"]
+        self.request = self.layer["request"]
+        setRoles(self.portal, TEST_USER_ID, ["Manager"])
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.enabled", True)
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "Be nice.")
+        api.portal.set_registry_record(
+            f"{_SETTINGS_PREFIX}.max_messages_per_session", 1
+        )
+        # A non-iMio host by default: no Omnia credentials involved.
+        api.portal.set_registry_record(
+            f"{_SETTINGS_PREFIX}.mcp_url", "https://mcp.example.com/"
+        )
+        api.portal.set_registry_record(
+            f"{_SETTINGS_PREFIX}.mcp_servers", ["omnia"]
+        )
+        self.request.environ.pop("HTTP_ORIGIN", None)
+        self.request.environ.pop("HTTP_MCP_SESSION_ID", None)
+
+    def tearDown(self):
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "")
+        api.portal.set_registry_record(
+            f"{_SETTINGS_PREFIX}.max_messages_per_session", 0
+        )
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.mcp_servers", [])
+        getUtility(IRegistry)[f"{_SETTINGS_PREFIX}.mcp_url"] = None
+
+    def _call(self, server, body=None, with_csrf=True):
+        self.request.BODY = json.dumps(body or self.TOOLS_LIST).encode()
+        if with_csrf:
+            self.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
+        else:
+            self.request.environ.pop("HTTP_X_CSRF_TOKEN", None)
+        view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
+        view.publishTraverse(self.request, server)
+        view.publishTraverse(self.request, "mcp")
+        return view()
+
+    def _upstream(self, status_code=200, text='{"jsonrpc": "2.0", "id": 1, "result": {}}',
+                  headers=None):
+        return MagicMock(
+            status_code=status_code,
+            text=text,
+            headers=headers or {"content-type": "application/json"},
+        )
+
+    def _service(self, use_oauth=False):
+        svc = MagicMock()
+        svc._headers.return_value = {"x-imio-application": "app"}
+        svc._use_oauth.return_value = use_oauth
+        return svc
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_body_is_forwarded_verbatim_to_the_server_url(self, mock_request):
+        """No system prompt nor message limit on JSON-RPC requests."""
+        mock_request.return_value = self._upstream()
+
+        result = self._call("omnia")
+
+        self.assertEqual(self.request.response.getStatus(), 200)
+        self.assertEqual(json.loads(result)["result"], {})
+        args, kwargs = mock_request.call_args
+        self.assertEqual(args, ("POST", "https://mcp.example.com/omnia/mcp"))
+        self.assertEqual(kwargs["json"], self.TOOLS_LIST)
+        self.assertEqual(
+            kwargs["headers"]["Accept"], "application/json, text/event-stream"
+        )
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_imio_host_gets_the_imio_headers(self, mock_request):
+        api.portal.set_registry_record(
+            f"{_SETTINGS_PREFIX}.mcp_url", "https://mcp.app.staging.imio.be"
+        )
+        mock_request.return_value = self._upstream()
+        with self._patch_service(self._service()):
+            self._call("omnia")
+
+        args, kwargs = mock_request.call_args
+        self.assertEqual(args, ("POST", "https://mcp.app.staging.imio.be/omnia/mcp"))
+        self.assertEqual(kwargs["headers"]["x-imio-application"], "app")
+
+    def _patch_service(self, service):
+        """Replace the IOmniaOpenAIService lookup only."""
+        from imio.omnia.core.interfaces import IOmniaOpenAIService
+
+        def lookup(objects, interface, name=""):
+            if interface is IOmniaOpenAIService:
+                return service
+            return getMultiAdapter(objects, interface, name)
+
+        return patch(
+            "imio.omnia.assistant.browser.proxy.getMultiAdapter", side_effect=lookup
+        )
+
+    @patch("imio.omnia.assistant.browser.proxy.oauth.get_oauth_client")
+    def test_imio_host_gets_the_sso_token(self, mock_get_client):
+        api.portal.set_registry_record(
+            f"{_SETTINGS_PREFIX}.mcp_url", "https://mcp.app.staging.imio.be"
+        )
+        client = MagicMock()
+        client.request.return_value = self._upstream()
+        mock_get_client.return_value = client
+        with self._patch_service(self._service(use_oauth=True)):
+            self._call("omnia")
+
+        self.assertEqual(self.request.response.getStatus(), 200)
+        args, _kwargs = client.request.call_args
+        self.assertEqual(args, ("POST", "https://mcp.app.staging.imio.be/omnia/mcp"))
+
+    @patch("imio.omnia.assistant.browser.proxy.oauth.get_oauth_client")
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_non_imio_host_gets_no_omnia_credentials(self, mock_request, mock_get_client):
+        mock_request.return_value = self._upstream()
+        self._call("omnia")
+
+        mock_get_client.assert_not_called()
+        _args, kwargs = mock_request.call_args
+        self.assertNotIn("x-imio-application", kwargs["headers"])
+        self.assertNotIn("Authorization", kwargs["headers"])
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_unselected_server_returns_404(self, mock_request):
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.mcp_servers", [])
+        result = json.loads(self._call("omnia"))
+
+        self.assertEqual(self.request.response.getStatus(), 404)
+        self.assertEqual(result, {"error": "Unknown MCP server"})
+        mock_request.assert_not_called()
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_no_mcp_url_returns_404(self, mock_request):
+        getUtility(IRegistry)[f"{_SETTINGS_PREFIX}.mcp_url"] = None
+        self._call("omnia")
+
+        self.assertEqual(self.request.response.getStatus(), 404)
+        mock_request.assert_not_called()
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_unknown_server_returns_404(self, mock_request):
+        self._call("nope")
+
+        self.assertEqual(self.request.response.getStatus(), 404)
+        mock_request.assert_not_called()
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_missing_csrf_token_returns_403(self, mock_request):
+        result = json.loads(self._call("omnia", with_csrf=False))
+
+        self.assertEqual(self.request.response.getStatus(), 403)
+        self.assertEqual(result, {"error": "Invalid CSRF token"})
+        mock_request.assert_not_called()
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_mismatched_origin_returns_403(self, mock_request):
+        self.request.environ["HTTP_ORIGIN"] = "https://evil.example.com"
+        self._call("omnia")
+
+        self.assertEqual(self.request.response.getStatus(), 403)
+        mock_request.assert_not_called()
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_disabled_assistant_returns_404(self, mock_request):
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.enabled", False)
+        result = json.loads(self._call("omnia"))
+
+        self.assertEqual(self.request.response.getStatus(), 404)
+        self.assertEqual(result, {"error": "Not found"})
+        mock_request.assert_not_called()
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_sse_reply_and_session_id_are_passed_through(self, mock_request):
+        sse = 'event: message\ndata: {"jsonrpc": "2.0", "id": 1, "result": {}}\n\n'
+        mock_request.return_value = self._upstream(
+            text=sse,
+            headers={"content-type": "text/event-stream", "Mcp-Session-Id": "abc"},
+        )
+        self.request.environ["HTTP_MCP_SESSION_ID"] = "abc"
+
+        result = self._call("omnia")
+
+        self.assertEqual(result, sse)
+        self.assertTrue(
+            self.request.response.getHeader("Content-Type").startswith("text/event-stream")
+        )
+        self.assertEqual(self.request.response.getHeader("Mcp-Session-Id"), "abc")
+        _args, kwargs = mock_request.call_args
+        self.assertEqual(kwargs["headers"]["Mcp-Session-Id"], "abc")
+
+    @patch("imio.omnia.assistant.browser.proxy.httpx2.request")
+    def test_upstream_error_status_is_forwarded(self, mock_request):
+        mock_request.return_value = self._upstream(status_code=401, text='{"error": "x"}')
+
+        self._call("omnia")
+
+        self.assertEqual(self.request.response.getStatus(), 401)
+
+    @patch(
+        "imio.omnia.assistant.browser.proxy.httpx2.request",
+        side_effect=httpx2.ConnectError("down"),
+    )
+    def test_connection_error_returns_502(self, _mock_request):
+        result = json.loads(self._call("omnia"))
+
+        self.assertEqual(self.request.response.getStatus(), 502)
+        self.assertEqual(result, {"error": "Upstream MCP error"})
+
+    def test_chat_requests_still_go_through_the_base_proxy(self):
+        """Only {name}/mcp is relayed; other paths keep the OpenAI proxy."""
+        with patch(
+            "imio.omnia.core.browser.proxy.get_openai_api_url", return_value=""
+        ):
+            self.request.BODY = b"{}"
+            self.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
+            view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
+            view.publishTraverse(self.request, "chat")
+            view.publishTraverse(self.request, "completions")
+            view()
+        self.assertEqual(self.request.response.getStatus(), 503)

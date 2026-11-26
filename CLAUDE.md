@@ -7,7 +7,7 @@ Plone 6 add-on providing the Omnia AI chat assistant for Plone. It adds a config
 ```
 src/imio/omnia/assistant/
 ├── browser/
-│   ├── controlpanel.py         # @@omnia-assistant-settings registry form + model vocabulary
+│   ├── controlpanel.py         # @@omnia-assistant-settings registry form + model and MCP server vocabularies
 │   ├── viewlets.py             # Injects runtime config into pages
 │   ├── templates/
 │   │   └── omnia_assistant_config.pt
@@ -75,6 +75,7 @@ The `OmniaAssistantConfigViewlet` reads registry values and points the frontend 
 - `api_service_url` → `context.absolute_url()/@@omnia-assistant-api`
 - `request_headers` → `{"X-CSRF-TOKEN": plone.protect.authenticator.createToken()}`, merged with any `request_headers` from `_get_config_overrides()`; the widget (>= 2.9) adds them to its chat and MCP requests
 - `model`, `include_page_content`, `page_content_selector`, `page_content_clean`, `max_context_chars`, `layout`, `initial_width`, `initial_height`, `disclaimer` → from `IOmniaAssistantSettings`
+- `mcp_servers` → the selected server names (URLs stay server-side); the widget calls `@@omnia-assistant-api/{name}/mcp`, which the proxy relays to `{mcp_url}/{name}/mcp` (no system prompt injection; Omnia credentials only for `imio.be` hosts)
 
 The widget (2.x) sends no `Authorization` header. The proxy relies on the view permission (the same-origin fetch carries the session cookie), the Origin check and the CSRF token (403 when missing or invalid). Upstream credentials stay server-side.
 
@@ -140,6 +141,8 @@ Stored under `imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings`
 - `initial_width` — Initial panel width in pixels
 - `initial_height` — Initial panel height in pixels
 - `disclaimer` — Optional disclaimer shown at the bottom of the panel
+- `mcp_url` — Base URL of the MCP servers; each server answers at `{mcp_url}/{name}/mcp`
+- `mcp_servers` — Selected MCP servers (checkboxes, vocabulary `imio.omnia.assistant.mcp_servers` built from the `MCP_SERVERS` constant in `browser/controlpanel.py`: Omnia has no endpoint listing them yet)
 
 The install profile registers the assistant JS bundle in Plone's bundle registry.
 

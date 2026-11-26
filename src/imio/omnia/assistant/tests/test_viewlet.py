@@ -145,6 +145,51 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.assertEqual(config["initial_width"], 380)
         self.assertEqual(config["initial_height"], 520)
 
+    def test_mcp_servers_are_the_selected_package_servers(self):
+        with patch(
+            "imio.omnia.assistant.adapters.api.portal.get_registry_record",
+            side_effect=self._registry_getter(
+                **{
+                    f"{self.PREFIX}.mcp_url": "https://mcp.app.imio.be/",
+                    f"{self.PREFIX}.mcp_servers": ["omnia", "removed"],
+                }
+            ),
+        ):
+            config = self._get_config()
+
+        # Names only: the URL stays server-side.
+        self.assertEqual(config["mcp_servers"], ["omnia"])
+
+    def test_mcp_servers_are_empty_without_mcp_url(self):
+        with patch(
+            "imio.omnia.assistant.adapters.api.portal.get_registry_record",
+            side_effect=self._registry_getter(
+                **{
+                    f"{self.PREFIX}.mcp_url": None,
+                    f"{self.PREFIX}.mcp_servers": ["omnia"],
+                }
+            ),
+        ):
+            config = self._get_config()
+
+        self.assertEqual(config["mcp_servers"], [])
+
+    def test_adapter_maps_selected_names_to_urls(self):
+        from imio.omnia.assistant.adapters import OmniaAssistantAdapter
+
+        with patch(
+            "imio.omnia.assistant.adapters.api.portal.get_registry_record",
+            side_effect=self._registry_getter(
+                **{
+                    f"{self.PREFIX}.mcp_url": "https://mcp.app.imio.be/",
+                    f"{self.PREFIX}.mcp_servers": ["omnia"],
+                }
+            ),
+        ):
+            urls = OmniaAssistantAdapter(self.portal, self.request).get_mcp_server_urls()
+
+        self.assertEqual(urls, {"omnia": "https://mcp.app.imio.be/omnia/mcp"})
+
     @patch("imio.omnia.assistant.adapters.createToken", return_value="csrf-token")
     def test_request_headers_from_overrides_keep_the_csrf_token(self, _mock_token):
         from imio.omnia.assistant.adapters import OmniaAssistantAdapter

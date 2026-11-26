@@ -74,3 +74,23 @@ class TestOmniaModelsVocabularyFactory(unittest.TestCase):
             vocabulary = OmniaModelsVocabularyFactory()(None)
 
         self.assertEqual(list(vocabulary), [])
+
+
+class TestMCPServerSettings(unittest.TestCase):
+    def test_validate_mcp_url(self):
+        from imio.omnia.assistant.browser.controlpanel import validate_mcp_url
+        from zope.interface import Invalid
+
+        self.assertTrue(validate_mcp_url("https://mcp.app.imio.be"))
+        self.assertTrue(validate_mcp_url(""))
+        with self.assertRaises(Invalid):
+            validate_mcp_url("mcp.app.imio.be")
+
+    def test_vocabulary_lists_the_package_servers(self):
+        from imio.omnia.assistant.browser.controlpanel import (
+            OmniaMCPServersVocabularyFactory,
+        )
+
+        vocabulary = OmniaMCPServersVocabularyFactory()(None)
+
+        self.assertEqual([term.value for term in vocabulary], ["omnia"])

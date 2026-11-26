@@ -29,7 +29,7 @@ Features
 - **Secure by design** — API credentials never reach the browser; all
   requests go through ``@@omnia-assistant-api``, guarded by a Plone
   permission, an Origin check and Plone's CSRF token.
-- **Configurable** — system prompt, disclaimer, model, display dimensions,
+- **Configurable** — system prompt, disclaimer, model, MCP servers, display dimensions,
   conversation length, and context extraction are all adjustable from the
   control panel.
 
@@ -93,6 +93,12 @@ Field                          Purpose
 ``initial_width``              Initial panel width in pixels (default: ``380``)
 ``initial_height``             Initial panel height in pixels (default: ``520``)
 ``disclaimer``                 Disclaimer text shown at the bottom of the panel
+``mcp_url``                    Base URL of the MCP servers, e.g.
+                               ``https://mcp.app.imio.be``: each server answers
+                               at ``{mcp_url}/{name}/mcp``
+``mcp_servers``                MCP servers whose tools the assistant may use,
+                               picked from the servers the package offers
+                               (``MCP_SERVERS``: ``omnia``)
 =============================  =================================================
 
 
@@ -162,6 +168,28 @@ longer exposed in ``window.omnia_assistant_settings``.
 Projects can override that behavior with a more specific
 ``IOmniaAssistantAdapter`` that changes availability rules or returns a custom
 system prompt for the current context/request.
+
+MCP tools
+---------
+
+Omnia has no endpoint listing its MCP servers yet: the package offers a fixed
+list, ``MCP_SERVERS`` in ``browser/controlpanel.py`` (``omnia`` for
+now). The servers checked in ``mcp_servers`` reach the widget as
+``mcp_servers`` (names only). The widget lists their tools on the first
+message and offers them to the model, which must support tool calling.
+
+The widget sends its MCP JSON-RPC requests (``tools/list``, ``tools/call``)
+to ``<portal_url>/@@omnia-assistant-api/{name}/mcp``. The assistant proxy
+applies the same gates as for the chat (Origin, CSRF token, assistant
+enabled), answers ``404`` for a server that is not checked, and relays the
+request to ``{mcp_url}/{name}/mcp`` without adding the system prompt. The
+upstream reply (JSON or a single SSE event) and the ``Mcp-Session-Id`` header
+are passed back as they are.
+
+The Omnia credentials (``x-imio-*`` headers and the SSO-Apps token, when
+``openai_auth_type`` is ``oauth2``) are only sent when ``mcp_url`` is an
+``imio.be`` host. The MCP server must accept the token of the configured
+SSO-Apps realm: a staging MCP host rejects a production token.
 
 Conversation length limit
 -------------------------
