@@ -17,6 +17,11 @@ Changelog
   their proxy requests. Upgrade step 1005.
   [thomlamb]
 
+- Bump @imiobe/omnia-assistant-ui from 2.9.0 to 2.10.0. Its new ``tracing``
+  option (Langfuse traces posted to ``{apiServiceUrl}/traces``) stays off:
+  the proxy does not relay that path.
+  [thomlamb]
+
 
 1.1 (2026-10-09)
 ----------------
