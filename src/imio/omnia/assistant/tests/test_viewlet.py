@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from plone import api
 from plone.app.testing import setRoles
+from plone.app.testing import logout
 from plone.app.testing import TEST_USER_ID
 
 from imio.omnia.assistant.testing import IMIO_OMNIA_ASSISTANT_INTEGRATION_TESTING
@@ -88,6 +89,26 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         api.portal.set_registry_record(f"{self.PREFIX}.enabled", False)
 
         self.assertIsNone(self._make_viewlet().config_json())
+
+    def test_visible_to_everyone_by_default(self):
+        self.assertEqual(
+            api.portal.get_registry_record(f"{self.PREFIX}.visible_to"), "everyone"
+        )
+        logout()
+
+        self.assertTrue(self._make_viewlet().available())
+
+    def test_visible_to_authenticated_hides_the_assistant_from_anonymous(self):
+        api.portal.set_registry_record(f"{self.PREFIX}.visible_to", "authenticated")
+        logout()
+
+        self.assertFalse(self._make_viewlet().available())
+        self.assertIsNone(self._make_viewlet().config_json())
+
+    def test_visible_to_authenticated_shows_the_assistant_to_members(self):
+        api.portal.set_registry_record(f"{self.PREFIX}.visible_to", "authenticated")
+
+        self.assertTrue(self._make_viewlet().available())
 
     @patch("imio.omnia.assistant.browser.viewlets.getMultiAdapter")
     def test_available_returns_false_when_adapter_marks_assistant_unavailable(

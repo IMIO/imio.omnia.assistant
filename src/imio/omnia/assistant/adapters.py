@@ -35,7 +35,12 @@ class OmniaAssistantAdapter:
             return default
 
     def is_available(self):
-        return self._get_registry_record(f"{_SETTINGS_PREFIX}.enabled", True)
+        if not self._get_registry_record(f"{_SETTINGS_PREFIX}.enabled", True):
+            return False
+        visible_to = self._get_registry_record(f"{_SETTINGS_PREFIX}.visible_to")
+        if visible_to == "authenticated":
+            return not api.user.is_anonymous()
+        return True
 
     def get_system_prompt(self):
         return self._get_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "")

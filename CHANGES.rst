@@ -12,6 +12,11 @@ Changelog
   ``{mcp_url}/{name}/mcp``. Upgrade step 1004.
   [thomlamb]
 
+- Add a "Visible to" setting (``visible_to``): ``everyone`` by default, or
+  ``authenticated`` to hide the assistant from anonymous visitors and refuse
+  their proxy requests. Upgrade step 1005.
+  [thomlamb]
+
 
 1.1 (2026-10-09)
 ----------------

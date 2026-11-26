@@ -29,5 +29,13 @@
     handler=".upgrades.upgrade_1003_to_1004"
     profile="imio.omnia.assistant:default"
   />
+  <genericsetup:upgradeStep
+    title="Register the assistant visibility setting"
+    description="Adds the visible_to record (everyone by default, or authenticated users only)."
+    source="1004"
+    destination="1005"
+    handler=".upgrades.upgrade_1004_to_1005"
+    profile="imio.omnia.assistant:default"
+  />
 
 </configure>

@@ -73,6 +73,9 @@ Field                          Purpose
 =============================  =================================================
 ``enabled``                    Enable or disable the assistant globally
                                (default: ``True``)
+``visible_to``                 ``everyone`` (default) or ``authenticated``:
+                               only users logged in to the site see and can
+                               call the assistant
 ``model``                      Model name for the OpenAI-compatible API
                                (vocabulary fetched from the API at form load)
 ``base_prompt``                System prompt prepended server-side to every
@@ -118,10 +121,13 @@ An ``OmniaAssistantConfigViewlet`` registered in ``plone.htmlhead`` sets
 layout, dimensions, etc.). The bundle reads it and mounts itself into a
 ``<div id="omnia-assistant-root">`` it appends to the page body.
 
-The widget is not rendered when the ``enabled`` setting is ``False``.
+The widget is not rendered when the ``enabled`` setting is ``False``, nor for
+anonymous visitors when ``visible_to`` is ``authenticated``; the proxy then
+answers ``404`` as well.
 More generally, page-level availability and server-side prompt composition are
 exposed through the ``IOmniaAssistantAdapter`` multi-adapter. The default
-implementation reads ``enabled`` and ``base_prompt`` from the registry.
+implementation reads ``enabled``, ``visible_to`` and ``base_prompt`` from the
+registry.
 
 Streaming chat
 --------------

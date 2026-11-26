@@ -33,3 +33,12 @@ def upgrade_1003_to_1004(context):
     from zope.component import getUtility
 
     getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)
+
+
+def upgrade_1004_to_1005(context):
+    """Register the visible_to setting."""
+    from imio.omnia.assistant.browser.controlpanel import IOmniaAssistantSettings
+    from plone.registry.interfaces import IRegistry
+    from zope.component import getUtility
+
+    getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)

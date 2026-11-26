@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: imio.omnia.assistant\n"
-"POT-Creation-Date: 2026-11-26 10:06+0000\n"
+"POT-Creation-Date: 2026-11-26 12:37+0000\n"
 "PO-Revision-Date: 2026-04-02 00:00+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: English <en@li.org>\n"
@@ -14,23 +14,23 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: imio.omnia.assistant\n"
 
-#: ../browser/controlpanel.py:191
+#: ../browser/controlpanel.py:202
 msgid "AI Assistant settings"
 msgstr ""
 
-#: ../browser/controlpanel.py:104
+#: ../browser/controlpanel.py:115
 msgid "Base URL of the MCP servers, e.g. https://mcp.app.imio.be: each server answers at {URL}/{name}/mcp. The SSO-Apps token is only sent to imio.be hosts."
 msgstr ""
 
-#: ../browser/controlpanel.py:130
+#: ../browser/controlpanel.py:141
 msgid "CSS selector to extract page content from."
 msgstr ""
 
-#: ../browser/controlpanel.py:181
+#: ../browser/controlpanel.py:192
 msgid "Disclaimer"
 msgstr ""
 
-#: ../browser/controlpanel.py:182
+#: ../browser/controlpanel.py:193
 msgid "Disclaimer text shown at the bottom of the chat panel. Leave empty for the default French disclaimer."
 msgstr ""
 
@@ -42,19 +42,19 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: ../browser/controlpanel.py:124
+#: ../browser/controlpanel.py:135
 msgid "Include current page content as context for the AI."
 msgstr ""
 
-#: ../browser/controlpanel.py:123
+#: ../browser/controlpanel.py:134
 msgid "Include page content"
 msgstr ""
 
-#: ../browser/controlpanel.py:176
+#: ../browser/controlpanel.py:187
 msgid "Initial panel height in pixels."
 msgstr ""
 
-#: ../browser/controlpanel.py:170
+#: ../browser/controlpanel.py:181
 msgid "Initial panel width in pixels."
 msgstr ""
 
@@ -62,43 +62,43 @@ msgstr ""
 msgid "Installs the imio.omnia.assistant add-on. Provides an AI chat assistant widget for Plone."
 msgstr ""
 
-#: ../browser/controlpanel.py:159
+#: ../browser/controlpanel.py:170
 msgid "Layout"
 msgstr ""
 
-#: ../browser/controlpanel.py:113
+#: ../browser/controlpanel.py:124
 msgid "MCP servers"
 msgstr ""
 
-#: ../browser/controlpanel.py:103
+#: ../browser/controlpanel.py:114
 msgid "MCP servers URL"
 msgstr ""
 
-#: ../browser/controlpanel.py:114
+#: ../browser/controlpanel.py:125
 msgid "MCP servers whose tools the assistant may use. The model must support tool calling."
 msgstr ""
 
-#: ../browser/controlpanel.py:143
+#: ../browser/controlpanel.py:154
 msgid "Max context characters"
 msgstr ""
 
-#: ../browser/controlpanel.py:149
+#: ../browser/controlpanel.py:160
 msgid "Max messages per conversation"
 msgstr ""
 
-#: ../browser/controlpanel.py:144
+#: ../browser/controlpanel.py:155
 msgid "Maximum characters of page content to include as context."
 msgstr ""
 
-#: ../browser/controlpanel.py:150
+#: ../browser/controlpanel.py:161
 msgid "Maximum number of user messages allowed in a single conversation. Set to 0 for no limit."
 msgstr ""
 
-#: ../browser/controlpanel.py:87
+#: ../browser/controlpanel.py:98
 msgid "Model"
 msgstr ""
 
-#: ../browser/controlpanel.py:88
+#: ../browser/controlpanel.py:99
 msgid "Model for the OpenAI-compatible API."
 msgstr ""
 
@@ -106,23 +106,23 @@ msgstr ""
 msgid "Omnia AI Assistant"
 msgstr ""
 
-#: ../browser/controlpanel.py:129
+#: ../browser/controlpanel.py:140
 msgid "Page content CSS selector"
 msgstr ""
 
-#: ../browser/controlpanel.py:175
+#: ../browser/controlpanel.py:186
 msgid "Panel height"
 msgstr ""
 
-#: ../browser/controlpanel.py:169
+#: ../browser/controlpanel.py:180
 msgid "Panel width"
 msgstr ""
 
-#: ../browser/controlpanel.py:93
+#: ../browser/controlpanel.py:104
 msgid "System prompt"
 msgstr ""
 
-#: ../browser/controlpanel.py:94
+#: ../browser/controlpanel.py:105
 msgid "System prompt sent with every conversation. The assistant reads the page through the read_page tool: tell the model to call read_page before answering a question about the page. The model must support tool calling."
 msgstr ""
 
@@ -134,15 +134,23 @@ msgstr ""
 msgid "Uninstalls the imio.omnia.assistant add-on."
 msgstr ""
 
-#: ../browser/controlpanel.py:136
+#: ../browser/controlpanel.py:147
 msgid "Use innerText instead of innerHTML for page content extraction."
 msgstr ""
 
-#: ../browser/controlpanel.py:135
+#: ../browser/controlpanel.py:146
 msgid "Use plain text"
 msgstr ""
 
-#: ../browser/controlpanel.py:160
+#: ../browser/controlpanel.py:87
+msgid "Visible to"
+msgstr ""
+
+#: ../browser/controlpanel.py:88
+msgid "everyone: all visitors. authenticated: only users logged in to the site; anonymous visitors neither see nor can call the assistant."
+msgstr ""
+
+#: ../browser/controlpanel.py:171
 msgid "floating: a panel opening from a round button in the bottom-right corner. sidebar: a panel docked on the right that pushes the page."
 msgstr ""
 

@@ -83,6 +83,17 @@ class IOmniaAssistantSettings(Interface):
         required=False,
         default=True,
     )
+    visible_to = schema.Choice(
+        title=_("Visible to"),
+        description=_(
+            "everyone: all visitors. authenticated: only users logged in to "
+            "the site; anonymous visitors neither see nor can call the "
+            "assistant."
+        ),
+        values=["everyone", "authenticated"],
+        required=False,
+        default="everyone",
+    )
     model = schema.Choice(
         title=_("Model"),
         description=_("Model for the OpenAI-compatible API."),

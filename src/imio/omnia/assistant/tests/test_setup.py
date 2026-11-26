@@ -70,6 +70,17 @@ class TestSetup(unittest.TestCase):
         self.assertIsNone(registry[f'{prefix}.mcp_url'])
         self.assertEqual(registry[f'{prefix}.mcp_servers'], [])
 
+    def test_upgrade_1004_to_1005_registers_visible_to(self):
+        from imio.omnia.assistant.upgrades import upgrade_1004_to_1005
+
+        registry = getUtility(IRegistry)
+        prefix = 'imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings'
+        del registry.records[f'{prefix}.visible_to']
+
+        upgrade_1004_to_1005(None)
+
+        self.assertEqual(registry[f'{prefix}.visible_to'], 'everyone')
+
 
 class TestUninstall(unittest.TestCase):
 
