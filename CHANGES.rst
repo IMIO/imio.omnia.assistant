@@ -22,6 +22,12 @@ Changelog
   the proxy does not relay that path.
   [thomlamb]
 
+- Add a "Trace replies in Langfuse" setting (``tracing``, off by default):
+  the widget posts a trace of each reply to ``@@omnia-assistant-api/traces``,
+  which the proxy relays as it is to the Omnia gateway's ``/v1/traces``.
+  Upgrade step 1006.
+  [thomlamb]
+
 
 1.1 (2026-10-09)
 ----------------

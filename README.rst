@@ -80,6 +80,8 @@ Field                          Purpose
                                (vocabulary fetched from the API at form load)
 ``base_prompt``                System prompt prepended server-side to every
                                conversation
+``tracing``                    Trace each reply in Langfuse through the Omnia
+                               gateway (default: ``False``)
 ``include_page_content``       Include the current page as context
                                (default: ``True``)
 ``page_content_selector``      CSS selector(s) to extract page content
@@ -128,6 +130,22 @@ More generally, page-level availability and server-side prompt composition are
 exposed through the ``IOmniaAssistantAdapter`` multi-adapter. The default
 implementation reads ``enabled``, ``visible_to`` and ``base_prompt`` from the
 registry.
+
+Langfuse traces
+---------------
+
+When ``tracing`` is on, the widget posts an OTLP/JSON trace of each reply
+(model calls, tool calls, token usage) to
+``<portal_url>/@@omnia-assistant-api/traces``. The proxy relays it as it is,
+without the system prompt, to ``{openai_api_url}/traces``: the Omnia gateway
+(``/v1/traces``) forwards it to Langfuse. It answers ``404`` when ``tracing``
+is off.
+
+The gateway only accepts traces under an sso-apps token (``openai_auth_type``
+set to ``oauth2``), drops the identity attributes the browser writes and
+stamps its own: the pouvoir local of the token (a ``pl_<name>`` group, or the
+``x-imio-municipality`` header for the applications its ``access.yaml`` lists
+under ``pouvoir_local_declarers``), else the client id.
 
 Streaming chat
 --------------

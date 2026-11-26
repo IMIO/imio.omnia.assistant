@@ -165,6 +165,12 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.assertEqual(config["layout"], "floating")
         self.assertEqual(config["initial_width"], 380)
         self.assertEqual(config["initial_height"], 520)
+        self.assertFalse(config["tracing"])
+
+    def test_tracing_reaches_the_widget(self):
+        api.portal.set_registry_record(f"{self.PREFIX}.tracing", True)
+
+        self.assertTrue(self._get_config()["tracing"])
 
     def test_mcp_servers_are_the_selected_package_servers(self):
         with patch(

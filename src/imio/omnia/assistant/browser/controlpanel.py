@@ -130,6 +130,16 @@ class IOmniaAssistantSettings(Interface):
         required=False,
         default=[],
     )
+    tracing = schema.Bool(
+        title=_("Trace replies in Langfuse"),
+        description=_(
+            "Send a Langfuse trace of each reply (model calls, tool calls, "
+            "token usage) to the Omnia gateway, which attributes it to this "
+            "site. The gateway must have tracing configured."
+        ),
+        required=False,
+        default=False,
+    )
     include_page_content = schema.Bool(
         title=_("Include page content"),
         description=_("Include current page content as context for the AI."),

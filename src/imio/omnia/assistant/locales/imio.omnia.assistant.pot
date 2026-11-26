@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-11-26 12:37+0000\n"
+"POT-Creation-Date: 2026-11-26 13:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: imio.omnia.assistant\n"
 
-#: ../browser/controlpanel.py:202
+#: ../browser/controlpanel.py:212
 msgid "AI Assistant settings"
 msgstr ""
 
@@ -25,15 +25,15 @@ msgstr ""
 msgid "Base URL of the MCP servers, e.g. https://mcp.app.imio.be: each server answers at {URL}/{name}/mcp. The SSO-Apps token is only sent to imio.be hosts."
 msgstr ""
 
-#: ../browser/controlpanel.py:141
+#: ../browser/controlpanel.py:151
 msgid "CSS selector to extract page content from."
 msgstr ""
 
-#: ../browser/controlpanel.py:192
+#: ../browser/controlpanel.py:202
 msgid "Disclaimer"
 msgstr ""
 
-#: ../browser/controlpanel.py:193
+#: ../browser/controlpanel.py:203
 msgid "Disclaimer text shown at the bottom of the chat panel. Leave empty for the default French disclaimer."
 msgstr ""
 
@@ -45,19 +45,19 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: ../browser/controlpanel.py:135
+#: ../browser/controlpanel.py:145
 msgid "Include current page content as context for the AI."
 msgstr ""
 
-#: ../browser/controlpanel.py:134
+#: ../browser/controlpanel.py:144
 msgid "Include page content"
 msgstr ""
 
-#: ../browser/controlpanel.py:187
+#: ../browser/controlpanel.py:197
 msgid "Initial panel height in pixels."
 msgstr ""
 
-#: ../browser/controlpanel.py:181
+#: ../browser/controlpanel.py:191
 msgid "Initial panel width in pixels."
 msgstr ""
 
@@ -65,7 +65,7 @@ msgstr ""
 msgid "Installs the imio.omnia.assistant add-on. Provides an AI chat assistant widget for Plone."
 msgstr ""
 
-#: ../browser/controlpanel.py:170
+#: ../browser/controlpanel.py:180
 msgid "Layout"
 msgstr ""
 
@@ -81,19 +81,19 @@ msgstr ""
 msgid "MCP servers whose tools the assistant may use. The model must support tool calling."
 msgstr ""
 
-#: ../browser/controlpanel.py:154
+#: ../browser/controlpanel.py:164
 msgid "Max context characters"
 msgstr ""
 
-#: ../browser/controlpanel.py:160
+#: ../browser/controlpanel.py:170
 msgid "Max messages per conversation"
 msgstr ""
 
-#: ../browser/controlpanel.py:155
+#: ../browser/controlpanel.py:165
 msgid "Maximum characters of page content to include as context."
 msgstr ""
 
-#: ../browser/controlpanel.py:161
+#: ../browser/controlpanel.py:171
 msgid "Maximum number of user messages allowed in a single conversation. Set to 0 for no limit."
 msgstr ""
 
@@ -109,16 +109,20 @@ msgstr ""
 msgid "Omnia AI Assistant"
 msgstr ""
 
-#: ../browser/controlpanel.py:140
+#: ../browser/controlpanel.py:150
 msgid "Page content CSS selector"
 msgstr ""
 
-#: ../browser/controlpanel.py:186
+#: ../browser/controlpanel.py:196
 msgid "Panel height"
 msgstr ""
 
-#: ../browser/controlpanel.py:180
+#: ../browser/controlpanel.py:190
 msgid "Panel width"
+msgstr ""
+
+#: ../browser/controlpanel.py:135
+msgid "Send a Langfuse trace of each reply (model calls, tool calls, token usage) to the Omnia gateway, which attributes it to this site. The gateway must have tracing configured."
 msgstr ""
 
 #: ../browser/controlpanel.py:104
@@ -133,15 +137,19 @@ msgstr ""
 msgid "The URL must start with https://"
 msgstr ""
 
+#: ../browser/controlpanel.py:134
+msgid "Trace replies in Langfuse"
+msgstr ""
+
 #: ../configure.zcml:34
 msgid "Uninstalls the imio.omnia.assistant add-on."
 msgstr ""
 
-#: ../browser/controlpanel.py:147
+#: ../browser/controlpanel.py:157
 msgid "Use innerText instead of innerHTML for page content extraction."
 msgstr ""
 
-#: ../browser/controlpanel.py:146
+#: ../browser/controlpanel.py:156
 msgid "Use plain text"
 msgstr ""
 
@@ -153,7 +161,7 @@ msgstr ""
 msgid "everyone: all visitors. authenticated: only users logged in to the site; anonymous visitors neither see nor can call the assistant."
 msgstr ""
 
-#: ../browser/controlpanel.py:171
+#: ../browser/controlpanel.py:181
 msgid "floating: a panel opening from a round button in the bottom-right corner. sidebar: a panel docked on the right that pushes the page."
 msgstr ""
 

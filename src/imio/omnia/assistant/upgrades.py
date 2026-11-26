@@ -42,3 +42,12 @@ def upgrade_1004_to_1005(context):
     from zope.component import getUtility
 
     getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)
+
+
+def upgrade_1005_to_1006(context):
+    """Register the tracing setting."""
+    from imio.omnia.assistant.browser.controlpanel import IOmniaAssistantSettings
+    from plone.registry.interfaces import IRegistry
+    from zope.component import getUtility
+
+    getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)

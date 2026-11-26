@@ -61,6 +61,7 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
             f"{_SETTINGS_PREFIX}.max_messages_per_session", 0
         )
         api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "")
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.tracing", False)
         # Clean up any auth state from a previous test.
         self.request._auth = ""
         self.request.environ.pop("HTTP_ORIGIN", None)
@@ -415,6 +416,38 @@ class TestOmniaAssistantOpenAIProxyView(unittest.TestCase):
         """publishTraverse returns the view itself to support chained traversal."""
         view = OmniaAssistantOpenAIProxyView(self.portal, self.request)
         self.assertIs(view.publishTraverse(self.request, "v1"), view)
+
+    # --- Langfuse traces ---
+
+    @patch("imio.omnia.core.browser.proxy.getMultiAdapter")
+    @patch("imio.omnia.core.browser.proxy.get_openai_api_url", return_value=_UPSTREAM_URL)
+    def test_traces_return_404_when_tracing_is_off(self, _url, mock_adapter):
+        self._mock_service(mock_adapter)
+        payload = json.dumps({"resourceSpans": []}).encode()
+
+        with patch("imio.omnia.core.browser.proxy.httpx2.request") as mock_req:
+            self._make_view(body=payload, path_segments=["traces"])()
+
+        self.assertEqual(self.request.response.getStatus(), 404)
+        mock_req.assert_not_called()
+
+    @patch("imio.omnia.core.browser.proxy.getMultiAdapter")
+    @patch("imio.omnia.core.browser.proxy.get_openai_api_url", return_value=_UPSTREAM_URL)
+    def test_traces_are_relayed_as_they_are_when_tracing_is_on(self, _url, mock_adapter):
+        self._mock_service(mock_adapter)
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.tracing", True)
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "Be nice.")
+        api.portal.set_registry_record(f"{_SETTINGS_PREFIX}.max_messages_per_session", 1)
+        spans = {"resourceSpans": [{"scopeSpans": []}]}
+        mock_resp = MagicMock(status_code=200, text="{}")
+
+        with patch("imio.omnia.core.browser.proxy.httpx2.request", return_value=mock_resp) as mock_req:
+            self._make_view(body=json.dumps(spans).encode(), path_segments=["traces"])()
+
+        self.assertEqual(self.request.response.getStatus(), 200)
+        self.assertEqual(mock_req.call_args[0][1], f"{_UPSTREAM_URL}/traces")
+        # No system prompt added to the spans.
+        self.assertEqual(mock_req.call_args[1]["json"], spans)
 
     # --- Non-streaming requests ---
 

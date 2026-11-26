@@ -37,5 +37,13 @@
     handler=".upgrades.upgrade_1004_to_1005"
     profile="imio.omnia.assistant:default"
   />
+  <genericsetup:upgradeStep
+    title="Register the Langfuse tracing setting"
+    description="Adds the tracing record (off by default)."
+    source="1005"
+    destination="1006"
+    handler=".upgrades.upgrade_1005_to_1006"
+    profile="imio.omnia.assistant:default"
+  />
 
 </configure>

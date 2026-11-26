@@ -112,10 +112,18 @@ class OmniaAssistantOpenAIProxyView(OmniaOpenAIProxyView):
         return updated_body
 
     def _prepare_request_body(self, body):
+        if self._is_traces_request():
+            # OTLP spans, relayed as they are: the gateway stamps the identity.
+            if not self._get_assistant_adapter().is_tracing_enabled():
+                return body, self._json_error(404, "Not found")
+            return body, None
         limit_error = self._validate_message_limit(body)
         if limit_error is not None:
             return body, limit_error
         return self._inject_base_prompt(body), None
+
+    def _is_traces_request(self):
+        return self._path_segments == ["traces"]
 
     # --- MCP relay ---
 

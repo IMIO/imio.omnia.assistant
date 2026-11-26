@@ -75,6 +75,7 @@ The `OmniaAssistantConfigViewlet` reads registry values and points the frontend 
 - `api_service_url` → `context.absolute_url()/@@omnia-assistant-api`
 - `request_headers` → `{"X-CSRF-TOKEN": plone.protect.authenticator.createToken()}`, merged with any `request_headers` from `_get_config_overrides()`; the widget (>= 2.9) adds them to its chat and MCP requests
 - `model`, `include_page_content`, `page_content_selector`, `page_content_clean`, `max_context_chars`, `layout`, `initial_width`, `initial_height`, `disclaimer` → from `IOmniaAssistantSettings`
+- `tracing` → from the registry; the widget then posts OTLP spans to `@@omnia-assistant-api/traces`, which the proxy relays unchanged (no prompt injection, no message limit) to `{openai_api_url}/traces`, i.e. the gateway's `/v1/traces`; 404 when the setting is off
 - `mcp_servers` → the selected server names (URLs stay server-side); the widget calls `@@omnia-assistant-api/{name}/mcp`, which the proxy relays to `{mcp_url}/{name}/mcp` (no system prompt injection; Omnia credentials only for `imio.be` hosts)
 
 The widget (2.x) sends no `Authorization` header. The proxy relies on the view permission (the same-origin fetch carries the session cookie), the Origin check and the CSRF token (403 when missing or invalid). Upstream credentials stay server-side.
@@ -141,6 +142,8 @@ Stored under `imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings`
 - `initial_width` — Initial panel width in pixels
 - `initial_height` — Initial panel height in pixels
 - `disclaimer` — Optional disclaimer shown at the bottom of the panel
+- `visible_to` — `everyone` (default) or `authenticated`: anonymous visitors neither get the widget nor can call the proxy
+- `tracing` — Trace each reply in Langfuse through the Omnia gateway (default off)
 - `mcp_url` — Base URL of the MCP servers; each server answers at `{mcp_url}/{name}/mcp`
 - `mcp_servers` — Selected MCP servers (checkboxes, vocabulary `imio.omnia.assistant.mcp_servers` built from the `MCP_SERVERS` constant in `browser/controlpanel.py`: Omnia has no endpoint listing them yet)
 

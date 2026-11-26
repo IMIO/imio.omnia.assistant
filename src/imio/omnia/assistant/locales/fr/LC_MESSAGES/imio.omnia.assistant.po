@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: imio.omnia.assistant\n"
-"POT-Creation-Date: 2026-11-26 12:37+0000\n"
+"POT-Creation-Date: 2026-11-26 13:01+0000\n"
 "PO-Revision-Date: 2026-04-02 00:00+0000\n"
 "Last-Translator: Antoine Duchêne <antoine.duchene@imio.be>\n"
 "Language-Team: French <fr@li.org>\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: imio.omnia.assistant\n"
 
-#: ../browser/controlpanel.py:202
+#: ../browser/controlpanel.py:212
 msgid "AI Assistant settings"
 msgstr "Paramètres de l'assistant IA"
 
@@ -22,15 +22,15 @@ msgstr "Paramètres de l'assistant IA"
 msgid "Base URL of the MCP servers, e.g. https://mcp.app.imio.be: each server answers at {URL}/{name}/mcp. The SSO-Apps token is only sent to imio.be hosts."
 msgstr "URL de base des serveurs MCP, par ex. https://mcp.app.imio.be : chaque serveur répond à {URL}/{nom}/mcp. Le jeton SSO-Apps n'est envoyé qu'aux hôtes imio.be."
 
-#: ../browser/controlpanel.py:141
+#: ../browser/controlpanel.py:151
 msgid "CSS selector to extract page content from."
 msgstr "Sélecteur CSS pour extraire le contenu de la page."
 
-#: ../browser/controlpanel.py:192
+#: ../browser/controlpanel.py:202
 msgid "Disclaimer"
 msgstr "Avertissement"
 
-#: ../browser/controlpanel.py:193
+#: ../browser/controlpanel.py:203
 msgid "Disclaimer text shown at the bottom of the chat panel. Leave empty for the default French disclaimer."
 msgstr "Texte d'avertissement affiché en bas du panneau de chat. Laisser vide pour l'avertissement français par défaut."
 
@@ -42,19 +42,19 @@ msgstr "Activer ou désactiver l'assistant IA globalement."
 msgid "Enabled"
 msgstr "Activé"
 
-#: ../browser/controlpanel.py:135
+#: ../browser/controlpanel.py:145
 msgid "Include current page content as context for the AI."
 msgstr "Inclure le contenu de la page actuelle comme contexte pour l'IA."
 
-#: ../browser/controlpanel.py:134
+#: ../browser/controlpanel.py:144
 msgid "Include page content"
 msgstr "Inclure le contenu de la page"
 
-#: ../browser/controlpanel.py:187
+#: ../browser/controlpanel.py:197
 msgid "Initial panel height in pixels."
 msgstr "Hauteur initiale du panneau en pixels."
 
-#: ../browser/controlpanel.py:181
+#: ../browser/controlpanel.py:191
 msgid "Initial panel width in pixels."
 msgstr "Largeur initiale du panneau en pixels."
 
@@ -62,7 +62,7 @@ msgstr "Largeur initiale du panneau en pixels."
 msgid "Installs the imio.omnia.assistant add-on. Provides an AI chat assistant widget for Plone."
 msgstr ""
 
-#: ../browser/controlpanel.py:170
+#: ../browser/controlpanel.py:180
 msgid "Layout"
 msgstr "Disposition"
 
@@ -78,19 +78,19 @@ msgstr "URL des serveurs MCP"
 msgid "MCP servers whose tools the assistant may use. The model must support tool calling."
 msgstr "Serveurs MCP dont l'assistant peut utiliser les outils. Le modèle doit prendre en charge l'appel d'outils."
 
-#: ../browser/controlpanel.py:154
+#: ../browser/controlpanel.py:164
 msgid "Max context characters"
 msgstr "Nombre maximum de caractères de contexte"
 
-#: ../browser/controlpanel.py:160
+#: ../browser/controlpanel.py:170
 msgid "Max messages per conversation"
 msgstr "Nombre maximum de messages par conversation"
 
-#: ../browser/controlpanel.py:155
+#: ../browser/controlpanel.py:165
 msgid "Maximum characters of page content to include as context."
 msgstr "Nombre maximum de caractères du contenu de la page à inclure comme contexte."
 
-#: ../browser/controlpanel.py:161
+#: ../browser/controlpanel.py:171
 msgid "Maximum number of user messages allowed in a single conversation. Set to 0 for no limit."
 msgstr "Nombre maximum de messages utilisateur autorisés dans une conversation. Mettre à 0 pour ne pas limiter."
 
@@ -106,17 +106,21 @@ msgstr "Modèle pour l'API compatible OpenAI."
 msgid "Omnia AI Assistant"
 msgstr ""
 
-#: ../browser/controlpanel.py:140
+#: ../browser/controlpanel.py:150
 msgid "Page content CSS selector"
 msgstr "Sélecteur CSS du contenu de la page"
 
-#: ../browser/controlpanel.py:186
+#: ../browser/controlpanel.py:196
 msgid "Panel height"
 msgstr "Hauteur du panneau"
 
-#: ../browser/controlpanel.py:180
+#: ../browser/controlpanel.py:190
 msgid "Panel width"
 msgstr "Largeur du panneau"
+
+#: ../browser/controlpanel.py:135
+msgid "Send a Langfuse trace of each reply (model calls, tool calls, token usage) to the Omnia gateway, which attributes it to this site. The gateway must have tracing configured."
+msgstr "Envoie une trace Langfuse de chaque réponse (appels au modèle, appels d’outils, consommation de jetons) à la passerelle Omnia, qui l’attribue à ce site. Le traçage doit être configuré sur la passerelle."
 
 #: ../browser/controlpanel.py:104
 msgid "System prompt"
@@ -130,15 +134,19 @@ msgstr "Prompt système envoyé avec chaque conversation. L'assistant lit la pag
 msgid "The URL must start with https://"
 msgstr "L'URL doit commencer par https://"
 
+#: ../browser/controlpanel.py:134
+msgid "Trace replies in Langfuse"
+msgstr "Tracer les réponses dans Langfuse"
+
 #: ../configure.zcml:34
 msgid "Uninstalls the imio.omnia.assistant add-on."
 msgstr ""
 
-#: ../browser/controlpanel.py:147
+#: ../browser/controlpanel.py:157
 msgid "Use innerText instead of innerHTML for page content extraction."
 msgstr "Utiliser innerText au lieu de innerHTML pour l'extraction du contenu de la page."
 
-#: ../browser/controlpanel.py:146
+#: ../browser/controlpanel.py:156
 msgid "Use plain text"
 msgstr "Utiliser le texte brut"
 
@@ -150,7 +158,7 @@ msgstr "Visible pour"
 msgid "everyone: all visitors. authenticated: only users logged in to the site; anonymous visitors neither see nor can call the assistant."
 msgstr "everyone : tous les visiteurs. authenticated : uniquement les utilisateurs connectés au site ; les visiteurs anonymes ne voient pas l’assistant et ne peuvent pas l’appeler."
 
-#: ../browser/controlpanel.py:171
+#: ../browser/controlpanel.py:181
 msgid "floating: a panel opening from a round button in the bottom-right corner. sidebar: a panel docked on the right that pushes the page."
 msgstr "floating : panneau qui s'ouvre depuis un bouton rond en bas à droite. sidebar : panneau ancré à droite qui décale la page."
 

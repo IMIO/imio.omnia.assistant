@@ -45,6 +45,9 @@ class OmniaAssistantAdapter:
     def get_system_prompt(self):
         return self._get_registry_record(f"{_SETTINGS_PREFIX}.base_prompt", "")
 
+    def is_tracing_enabled(self):
+        return bool(self._get_registry_record(f"{_SETTINGS_PREFIX}.tracing", False))
+
     def get_mcp_server_urls(self):
         """Map the selected MCP server names to their endpoint URLs.
 
@@ -84,6 +87,8 @@ class OmniaAssistantAdapter:
             # Names only: the widget calls @@omnia-assistant-api/{name}/mcp and
             # the proxy resolves the URL server-side.
             "mcp_servers": list(self.get_mcp_server_urls()),
+            # The widget then posts its spans to @@omnia-assistant-api/traces.
+            "tracing": self.is_tracing_enabled(),
         }
         disclaimer = self._get_registry_record(f"{_SETTINGS_PREFIX}.disclaimer")
         if disclaimer:
