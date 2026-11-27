@@ -5,6 +5,11 @@ Changelog
 1.2 (unreleased)
 ----------------
 
+- Turn the assistant off by default (``enabled``): installing the add-on no
+  longer shows the widget to every visitor, each site turns it on in the
+  control panel. Sites where it is already installed keep their setting.
+  [thomlamb]
+
 - Add MCP server settings to the assistant control panel: the MCP servers URL
   (``mcp_url``) and a checkbox list to pick, among the servers the package
   offers (``omnia`` for now), those whose tools the assistant may use.

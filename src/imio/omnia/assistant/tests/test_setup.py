@@ -42,6 +42,13 @@ class TestSetup(unittest.TestCase):
             IImioOmniaAssistantLayer,
             utils.registered_layers())
 
+    def test_assistant_is_disabled_by_default(self):
+        self.assertFalse(
+            api.portal.get_registry_record(
+                "imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings.enabled"
+            )
+        )
+
     def test_upgrade_1002_to_1003_replaces_mode_by_layout(self):
         from imio.omnia.assistant.upgrades import upgrade_1002_to_1003
         from plone.registry import field

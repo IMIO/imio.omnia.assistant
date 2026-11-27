@@ -130,7 +130,7 @@ tox -e isort-apply              # Fix import order
 
 Stored under `imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings`:
 
-- `enabled` — Enable or disable the assistant globally
+- `enabled` — Enable or disable the assistant globally (off by default)
 - `model` — Model name selected from the OpenAI-compatible API
 - `base_prompt` — System prompt injected server-side for every conversation
 - `include_page_content` — Include current page content as context

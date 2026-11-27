@@ -72,7 +72,8 @@ Stored under the prefix
 Field                          Purpose
 =============================  =================================================
 ``enabled``                    Enable or disable the assistant globally
-                               (default: ``True``)
+                               (default: ``False``: installing the add-on
+                               does not show the assistant)
 ``visible_to``                 ``everyone`` (default) or ``authenticated``:
                                only users logged in to the site see and can
                                call the assistant

@@ -35,7 +35,7 @@ class OmniaAssistantAdapter:
             return default
 
     def is_available(self):
-        if not self._get_registry_record(f"{_SETTINGS_PREFIX}.enabled", True):
+        if not self._get_registry_record(f"{_SETTINGS_PREFIX}.enabled", False):
             return False
         visible_to = self._get_registry_record(f"{_SETTINGS_PREFIX}.visible_to")
         if visible_to == "authenticated":

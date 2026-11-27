@@ -81,7 +81,7 @@ class IOmniaAssistantSettings(Interface):
         title=_("Enabled"),
         description=_("Enable or disable the AI assistant globally."),
         required=False,
-        default=True,
+        default=False,
     )
     visible_to = schema.Choice(
         title=_("Visible to"),

@@ -41,6 +41,8 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.portal = self.layer["portal"]
         self.request = self.layer["request"]
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
+        # Off by default: these tests are about an enabled assistant.
+        api.portal.set_registry_record(f"{self.PREFIX}.enabled", True)
 
     def _make_viewlet(self):
         from imio.omnia.assistant.browser.viewlets import (
