@@ -24,3 +24,30 @@ def upgrade_1002_to_1003(context):
     key = f"{IOmniaAssistantSettings.__identifier__}.mode"
     if key in registry.records:
         del registry.records[key]
+
+
+def upgrade_1003_to_1004(context):
+    """Register the MCP server settings."""
+    from imio.omnia.assistant.browser.controlpanel import IOmniaAssistantSettings
+    from plone.registry.interfaces import IRegistry
+    from zope.component import getUtility
+
+    getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)
+
+
+def upgrade_1004_to_1005(context):
+    """Register the visible_to setting."""
+    from imio.omnia.assistant.browser.controlpanel import IOmniaAssistantSettings
+    from plone.registry.interfaces import IRegistry
+    from zope.component import getUtility
+
+    getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)
+
+
+def upgrade_1005_to_1006(context):
+    """Register the tracing setting."""
+    from imio.omnia.assistant.browser.controlpanel import IOmniaAssistantSettings
+    from plone.registry.interfaces import IRegistry
+    from zope.component import getUtility
+
+    getUtility(IRegistry).registerInterface(IOmniaAssistantSettings)

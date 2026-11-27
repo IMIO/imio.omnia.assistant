@@ -25,6 +25,13 @@
     name="imio.omnia.assistant.models"
   />
 
+  <!-- Vocabulary: MCP servers listed in the assistant settings -->
+  <utility
+    factory=".controlpanel.OmniaMCPServersVocabularyFactory"
+    provides="zope.schema.interfaces.IVocabularyFactory"
+    name="imio.omnia.assistant.mcp_servers"
+  />
+
   <browser:page
     name="omnia-assistant-settings"
     for="Products.CMFPlone.interfaces.IPloneSiteRoot"

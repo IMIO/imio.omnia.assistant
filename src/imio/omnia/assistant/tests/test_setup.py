@@ -57,6 +57,41 @@ class TestSetup(unittest.TestCase):
         self.assertNotIn(f'{prefix}.mode', registry.records)
         self.assertEqual(registry[f'{prefix}.layout'], 'floating')
 
+    def test_upgrade_1003_to_1004_registers_the_mcp_settings(self):
+        from imio.omnia.assistant.upgrades import upgrade_1003_to_1004
+
+        registry = getUtility(IRegistry)
+        prefix = 'imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings'
+        for name in ('mcp_url', 'mcp_servers'):
+            del registry.records[f'{prefix}.{name}']
+
+        upgrade_1003_to_1004(None)
+
+        self.assertIsNone(registry[f'{prefix}.mcp_url'])
+        self.assertEqual(registry[f'{prefix}.mcp_servers'], [])
+
+    def test_upgrade_1005_to_1006_registers_tracing(self):
+        from imio.omnia.assistant.upgrades import upgrade_1005_to_1006
+
+        registry = getUtility(IRegistry)
+        prefix = 'imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings'
+        del registry.records[f'{prefix}.tracing']
+
+        upgrade_1005_to_1006(None)
+
+        self.assertFalse(registry[f'{prefix}.tracing'])
+
+    def test_upgrade_1004_to_1005_registers_visible_to(self):
+        from imio.omnia.assistant.upgrades import upgrade_1004_to_1005
+
+        registry = getUtility(IRegistry)
+        prefix = 'imio.omnia.assistant.browser.controlpanel.IOmniaAssistantSettings'
+        del registry.records[f'{prefix}.visible_to']
+
+        upgrade_1004_to_1005(None)
+
+        self.assertEqual(registry[f'{prefix}.visible_to'], 'everyone')
+
 
 class TestUninstall(unittest.TestCase):
 

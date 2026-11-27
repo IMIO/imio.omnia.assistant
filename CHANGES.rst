@@ -5,7 +5,28 @@ Changelog
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add MCP server settings to the assistant control panel: the MCP servers URL
+  (``mcp_url``) and a checkbox list to pick, among the servers the package
+  offers (``omnia`` for now), those whose tools the assistant may use.
+  The proxy relays the widget's ``{name}/mcp`` requests to
+  ``{mcp_url}/{name}/mcp``. Upgrade step 1004.
+  [thomlamb]
+
+- Add a "Visible to" setting (``visible_to``): ``everyone`` by default, or
+  ``authenticated`` to hide the assistant from anonymous visitors and refuse
+  their proxy requests. Upgrade step 1005.
+  [thomlamb]
+
+- Bump @imiobe/omnia-assistant-ui from 2.9.0 to 2.10.0. Its new ``tracing``
+  option (Langfuse traces posted to ``{apiServiceUrl}/traces``) stays off:
+  the proxy does not relay that path.
+  [thomlamb]
+
+- Add a "Trace replies in Langfuse" setting (``tracing``, off by default):
+  the widget posts a trace of each reply to ``@@omnia-assistant-api/traces``,
+  which the proxy relays as it is to the Omnia gateway's ``/v1/traces``.
+  Upgrade step 1006.
+  [thomlamb]
 
 
 1.1 (2026-10-09)

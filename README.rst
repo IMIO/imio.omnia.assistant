@@ -29,7 +29,7 @@ Features
 - **Secure by design** — API credentials never reach the browser; all
   requests go through ``@@omnia-assistant-api``, guarded by a Plone
   permission, an Origin check and Plone's CSRF token.
-- **Configurable** — system prompt, disclaimer, model, display dimensions,
+- **Configurable** — system prompt, disclaimer, model, MCP servers, display dimensions,
   conversation length, and context extraction are all adjustable from the
   control panel.
 
@@ -73,10 +73,15 @@ Field                          Purpose
 =============================  =================================================
 ``enabled``                    Enable or disable the assistant globally
                                (default: ``True``)
+``visible_to``                 ``everyone`` (default) or ``authenticated``:
+                               only users logged in to the site see and can
+                               call the assistant
 ``model``                      Model name for the OpenAI-compatible API
                                (vocabulary fetched from the API at form load)
 ``base_prompt``                System prompt prepended server-side to every
                                conversation
+``tracing``                    Trace each reply in Langfuse through the Omnia
+                               gateway (default: ``False``)
 ``include_page_content``       Include the current page as context
                                (default: ``True``)
 ``page_content_selector``      CSS selector(s) to extract page content
@@ -93,6 +98,12 @@ Field                          Purpose
 ``initial_width``              Initial panel width in pixels (default: ``380``)
 ``initial_height``             Initial panel height in pixels (default: ``520``)
 ``disclaimer``                 Disclaimer text shown at the bottom of the panel
+``mcp_url``                    Base URL of the MCP servers, e.g.
+                               ``https://mcp.app.imio.be``: each server answers
+                               at ``{mcp_url}/{name}/mcp``
+``mcp_servers``                MCP servers whose tools the assistant may use,
+                               picked from the servers the package offers
+                               (``MCP_SERVERS``: ``omnia``)
 =============================  =================================================
 
 
@@ -112,10 +123,29 @@ An ``OmniaAssistantConfigViewlet`` registered in ``plone.htmlhead`` sets
 layout, dimensions, etc.). The bundle reads it and mounts itself into a
 ``<div id="omnia-assistant-root">`` it appends to the page body.
 
-The widget is not rendered when the ``enabled`` setting is ``False``.
+The widget is not rendered when the ``enabled`` setting is ``False``, nor for
+anonymous visitors when ``visible_to`` is ``authenticated``; the proxy then
+answers ``404`` as well.
 More generally, page-level availability and server-side prompt composition are
 exposed through the ``IOmniaAssistantAdapter`` multi-adapter. The default
-implementation reads ``enabled`` and ``base_prompt`` from the registry.
+implementation reads ``enabled``, ``visible_to`` and ``base_prompt`` from the
+registry.
+
+Langfuse traces
+---------------
+
+When ``tracing`` is on, the widget posts an OTLP/JSON trace of each reply
+(model calls, tool calls, token usage) to
+``<portal_url>/@@omnia-assistant-api/traces``. The proxy relays it as it is,
+without the system prompt, to ``{openai_api_url}/traces``: the Omnia gateway
+(``/v1/traces``) forwards it to Langfuse. It answers ``404`` when ``tracing``
+is off.
+
+The gateway only accepts traces under an sso-apps token (``openai_auth_type``
+set to ``oauth2``), drops the identity attributes the browser writes and
+stamps its own: the pouvoir local of the token (a ``pl_<name>`` group, or the
+``x-imio-municipality`` header for the applications its ``access.yaml`` lists
+under ``pouvoir_local_declarers``), else the client id.
 
 Streaming chat
 --------------
@@ -162,6 +192,28 @@ longer exposed in ``window.omnia_assistant_settings``.
 Projects can override that behavior with a more specific
 ``IOmniaAssistantAdapter`` that changes availability rules or returns a custom
 system prompt for the current context/request.
+
+MCP tools
+---------
+
+Omnia has no endpoint listing its MCP servers yet: the package offers a fixed
+list, ``MCP_SERVERS`` in ``browser/controlpanel.py`` (``omnia`` for
+now). The servers checked in ``mcp_servers`` reach the widget as
+``mcp_servers`` (names only). The widget lists their tools on the first
+message and offers them to the model, which must support tool calling.
+
+The widget sends its MCP JSON-RPC requests (``tools/list``, ``tools/call``)
+to ``<portal_url>/@@omnia-assistant-api/{name}/mcp``. The assistant proxy
+applies the same gates as for the chat (Origin, CSRF token, assistant
+enabled), answers ``404`` for a server that is not checked, and relays the
+request to ``{mcp_url}/{name}/mcp`` without adding the system prompt. The
+upstream reply (JSON or a single SSE event) and the ``Mcp-Session-Id`` header
+are passed back as they are.
+
+The Omnia credentials (``x-imio-*`` headers and the SSO-Apps token, when
+``openai_auth_type`` is ``oauth2``) are only sent when ``mcp_url`` is an
+``imio.be`` host. The MCP server must accept the token of the configured
+SSO-Apps realm: a staging MCP host rejects a production token.
 
 Conversation length limit
 -------------------------

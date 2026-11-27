@@ -16,5 +16,11 @@ class IOmniaAssistantAdapter(Interface):
     def get_system_prompt():
         """Return the server-side system prompt prepended to conversations."""
 
+    def get_mcp_server_urls():
+        """Return the MCP servers the assistant may use, as {name: endpoint URL}."""
+
+    def is_tracing_enabled():
+        """Return True when the widget's replies are traced in Langfuse."""
+
     def get_config():
         """Return frontend runtime config overrides as a dict."""

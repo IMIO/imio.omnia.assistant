@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from plone import api
 from plone.app.testing import setRoles
+from plone.app.testing import logout
 from plone.app.testing import TEST_USER_ID
 
 from imio.omnia.assistant.testing import IMIO_OMNIA_ASSISTANT_INTEGRATION_TESTING
@@ -89,6 +90,26 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
 
         self.assertIsNone(self._make_viewlet().config_json())
 
+    def test_visible_to_everyone_by_default(self):
+        self.assertEqual(
+            api.portal.get_registry_record(f"{self.PREFIX}.visible_to"), "everyone"
+        )
+        logout()
+
+        self.assertTrue(self._make_viewlet().available())
+
+    def test_visible_to_authenticated_hides_the_assistant_from_anonymous(self):
+        api.portal.set_registry_record(f"{self.PREFIX}.visible_to", "authenticated")
+        logout()
+
+        self.assertFalse(self._make_viewlet().available())
+        self.assertIsNone(self._make_viewlet().config_json())
+
+    def test_visible_to_authenticated_shows_the_assistant_to_members(self):
+        api.portal.set_registry_record(f"{self.PREFIX}.visible_to", "authenticated")
+
+        self.assertTrue(self._make_viewlet().available())
+
     @patch("imio.omnia.assistant.browser.viewlets.getMultiAdapter")
     def test_available_returns_false_when_adapter_marks_assistant_unavailable(
         self, mock_get_multi_adapter
@@ -144,6 +165,57 @@ class TestOmniaAssistantConfigViewlet(unittest.TestCase):
         self.assertEqual(config["layout"], "floating")
         self.assertEqual(config["initial_width"], 380)
         self.assertEqual(config["initial_height"], 520)
+        self.assertFalse(config["tracing"])
+
+    def test_tracing_reaches_the_widget(self):
+        api.portal.set_registry_record(f"{self.PREFIX}.tracing", True)
+
+        self.assertTrue(self._get_config()["tracing"])
+
+    def test_mcp_servers_are_the_selected_package_servers(self):
+        with patch(
+            "imio.omnia.assistant.adapters.api.portal.get_registry_record",
+            side_effect=self._registry_getter(
+                **{
+                    f"{self.PREFIX}.mcp_url": "https://mcp.app.imio.be/",
+                    f"{self.PREFIX}.mcp_servers": ["omnia", "removed"],
+                }
+            ),
+        ):
+            config = self._get_config()
+
+        # Names only: the URL stays server-side.
+        self.assertEqual(config["mcp_servers"], ["omnia"])
+
+    def test_mcp_servers_are_empty_without_mcp_url(self):
+        with patch(
+            "imio.omnia.assistant.adapters.api.portal.get_registry_record",
+            side_effect=self._registry_getter(
+                **{
+                    f"{self.PREFIX}.mcp_url": None,
+                    f"{self.PREFIX}.mcp_servers": ["omnia"],
+                }
+            ),
+        ):
+            config = self._get_config()
+
+        self.assertEqual(config["mcp_servers"], [])
+
+    def test_adapter_maps_selected_names_to_urls(self):
+        from imio.omnia.assistant.adapters import OmniaAssistantAdapter
+
+        with patch(
+            "imio.omnia.assistant.adapters.api.portal.get_registry_record",
+            side_effect=self._registry_getter(
+                **{
+                    f"{self.PREFIX}.mcp_url": "https://mcp.app.imio.be/",
+                    f"{self.PREFIX}.mcp_servers": ["omnia"],
+                }
+            ),
+        ):
+            urls = OmniaAssistantAdapter(self.portal, self.request).get_mcp_server_urls()
+
+        self.assertEqual(urls, {"omnia": "https://mcp.app.imio.be/omnia/mcp"})
 
     @patch("imio.omnia.assistant.adapters.createToken", return_value="csrf-token")
     def test_request_headers_from_overrides_keep_the_csrf_token(self, _mock_token):
